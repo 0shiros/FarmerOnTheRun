@@ -18,7 +18,7 @@ void AGMGame::BeginPlay()
 	
 	UWorld* World = GetWorld();
 	
-	PlayerSpawnPoint = Cast<ASpawnPoint>(UGameplayStatics::GetActorOfClass(World, ASpawnPoint::StaticClass()));
+	TObjectPtr<ASpawnPoint> PlayerSpawnPoint = Cast<ASpawnPoint>(UGameplayStatics::GetActorOfClass(World, ASpawnPoint::StaticClass()));
 		
 	TObjectPtr<AGamePlayerController> MyPlayerController = World->GetFirstPlayerController<AGamePlayerController>();
 	
@@ -36,13 +36,11 @@ void AGMGame::BeginPlay()
 			return;
 		}
 		
-		FVector Location = PlayerSpawnPoint->GetActorLocation();
-		FRotator Rotation = PlayerSpawnPoint->GetActorRotation();
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		SpawnParams.Owner = MyPlayerController;
 		
-		APlayerVehicule* PlayerVehicule = World->SpawnActor<APlayerVehicule>(PlayerClass, Location, Rotation, SpawnParams);
+		APlayerVehicule* PlayerVehicule = World->SpawnActor<APlayerVehicule>(PlayerClass, PlayerSpawnPoint->GetTransform(), SpawnParams);
 		
 		if (IsValid(PlayerVehicule))
 		{	

@@ -16,12 +16,9 @@ class FARMERONTHERUN_API AGMGame : public AGameModeBase
 public:
 	AGMGame();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerVehiculeClass")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= PlayerVehiculeClass)
 	TSubclassOf<APlayerVehicule> PlayerClass;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerSpawnPoint")
-	TObjectPtr<class ASpawnPoint> PlayerSpawnPoint;
-	
+		
 private:
 	virtual void BeginPlay() override;	
 };

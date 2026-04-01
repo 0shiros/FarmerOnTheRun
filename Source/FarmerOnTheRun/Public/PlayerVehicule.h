@@ -14,6 +14,21 @@ class FARMERONTHERUN_API APlayerVehicule : public APawn
 public:
 	// Sets default values for this pawn's properties
 	APlayerVehicule();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	TObjectPtr<class UCameraComponent> CameraComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SpringArm)
+	TObjectPtr<class USpringArmComponent> SpringArmComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = BoxCollision)
+	TObjectPtr<class UBoxComponent> BoxCollisionComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SkeletalMesh)
+	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Arrow)
+	TObjectPtr<class UArrowComponent> ArrowComponent;
 
 protected:
 	// Called when the game starts or when spawned
@@ -24,6 +39,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
+	void Accelerate(float Value);
 };

@@ -4,6 +4,7 @@
 #include "GamePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PlayerVehicule.h"
 
 void AGamePlayerController::Start()
 {
@@ -44,5 +45,5 @@ void AGamePlayerController::SetupInputComponent()
 
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Acceleration: %f"), Value.Get<float>()));
+	PlayerVehicule->Accelerate(Value.Get<float>());
 }
