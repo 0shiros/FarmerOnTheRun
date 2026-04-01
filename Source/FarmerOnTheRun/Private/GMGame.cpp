@@ -3,10 +3,12 @@
 
 #include "GMGame.h"
 #include "GamePlayerController.h"
+#include "SpawnPoint.h"
+#include "Kismet/GameplayStatics.h"
 
 AGMGame::AGMGame()
 {
-	PlayerControllerClass = AGamePlayerController::StaticClass();
+	PlayerControllerClass = nullptr;
 	DefaultPawnClass = nullptr;
 }
 
@@ -16,7 +18,9 @@ void AGMGame::BeginPlay()
 	
 	UWorld* World = GetWorld();
 	
-	AGamePlayerController* MyPlayerController = World->GetFirstPlayerController<AGamePlayerController>();
+	PlayerSpawnPoint = Cast<ASpawnPoint>(UGameplayStatics::GetActorOfClass(World, ASpawnPoint::StaticClass()));
+		
+	TObjectPtr<AGamePlayerController> MyPlayerController = World->GetFirstPlayerController<AGamePlayerController>();
 	
 	if (!MyPlayerController)
 	{

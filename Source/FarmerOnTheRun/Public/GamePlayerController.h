@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InputMappingContext.h"
 #include "GameFramework/PlayerController.h"
 #include "GamePlayerController.generated.h"
 
@@ -18,10 +17,10 @@ public:
 	
 protected: 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = IMC)
-	TObjectPtr<UInputMappingContext> CharacterIMC;
+	TObjectPtr<class UInputMappingContext> CharacterIMC;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> AccelerationAction;
+	TObjectPtr<class UInputAction> AccelerationAction;
 		
 private:
 	virtual void SetupInputComponent() override;

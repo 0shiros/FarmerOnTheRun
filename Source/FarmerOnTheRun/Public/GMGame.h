@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GMGame.generated.h"
 
+
 UCLASS(Abstract)
 class FARMERONTHERUN_API AGMGame : public AGameModeBase
 {
@@ -19,7 +20,7 @@ public:
 	TSubclassOf<APlayerVehicule> PlayerClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerSpawnPoint")
-	TOBjectPtr<AActor> PlayerSpawnPoint;
+	TObjectPtr<class ASpawnPoint> PlayerSpawnPoint;
 	
 private:
 	virtual void BeginPlay() override;	

@@ -18,9 +18,9 @@ void AGamePlayerController::Start()
 	SetInputMode(InputMode);
 	
 	// Add the input mapping context to the local player subsystem
-	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	if (TObjectPtr<ULocalPlayer> LocalPlayer = GetLocalPlayer())
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =	LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem =	LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
 			Subsystem->AddMappingContext(CharacterIMC, 0);
 		}
@@ -35,7 +35,7 @@ void AGamePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
+	if (TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnAcceleration);
