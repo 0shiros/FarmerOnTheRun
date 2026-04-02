@@ -40,7 +40,7 @@ void AGMGame::BeginPlay()
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		SpawnParams.Owner = MyPlayerController;
 		
-		APlayerVehicule* PlayerVehicule = World->SpawnActor<APlayerVehicule>(PlayerClass, PlayerSpawnPoint->GetTransform(), SpawnParams);
+		APlayerVehicle* PlayerVehicule = World->SpawnActor<APlayerVehicle>(PlayerClass, PlayerSpawnPoint->GetTransform(), SpawnParams);
 		
 		if (IsValid(PlayerVehicule))
 		{	

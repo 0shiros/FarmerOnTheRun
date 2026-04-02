@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PlayerVehicule.h"
+#include "PlayerVehicle.h"
 #include "GameFramework/GameModeBase.h"
 #include "GMGame.generated.h"
 
@@ -17,7 +17,7 @@ public:
 	AGMGame();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= PlayerVehiculeClass)
-	TSubclassOf<APlayerVehicule> PlayerClass;
+	TSubclassOf<APlayerVehicle> PlayerClass;
 		
 private:
 	virtual void BeginPlay() override;	

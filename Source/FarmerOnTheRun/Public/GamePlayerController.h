@@ -13,7 +13,7 @@ class FARMERONTHERUN_API AGamePlayerController : public APlayerController
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class APlayerVehicule> PlayerVehicule;
+	TObjectPtr<class APlayerVehicle> PlayerVehicule;
 	
 protected: 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = IMC)

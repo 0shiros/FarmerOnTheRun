@@ -3,17 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "VehicleStats.h"
 #include "GameFramework/Pawn.h"
-#include "PlayerVehicule.generated.h"
+#include "PlayerVehicle.generated.h"
 
 UCLASS(Abstract)
-class FARMERONTHERUN_API APlayerVehicule : public APawn
+class FARMERONTHERUN_API APlayerVehicle : public APawn
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	APlayerVehicule();
+	APlayerVehicle();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	TObjectPtr<class UCameraComponent> CameraComponent;
@@ -28,7 +29,13 @@ public:
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Arrow)
-	TObjectPtr<class UArrowComponent> ArrowComponent;
+	TObjectPtr<class UArrowComponent> ArrowComponent;		
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Wheels)
+	TArray<TObjectPtr<class USuspensionComponent>> Wheels;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	FVehicleStats VehicleStats;
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,9 +44,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
+	void SetRepulsionForce();
 	
 	void Accelerate(float Value);
 };

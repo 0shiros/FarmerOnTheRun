@@ -4,7 +4,7 @@
 #include "GamePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "PlayerVehicule.h"
+#include "PlayerVehicle.h"
 
 void AGamePlayerController::Start()
 {
