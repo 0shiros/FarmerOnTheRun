@@ -41,10 +41,17 @@ void AGamePlayerController::SetupInputComponent()
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnAcceleration);
+		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnTurnLeftRight);
 	}
 }
 
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
 	PlayerVehicule->VehicleMovementComponent->Accelerate(Value.Get<float>());
+}
+
+void AGamePlayerController::OnTurnLeftRight(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Turn Value: %f"), Value.Get<float>()));
+	PlayerVehicule->VehicleMovementComponent->TurnLeftRight(Value.Get<float>());
 }

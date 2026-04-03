@@ -74,7 +74,6 @@ void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, F
 {
 	if (Data.OutHits.Num())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit at Time : ") + FString::SanitizeFloat(Data.OutHits[0].Time));
 		Results.IsGrounded = true;
 		Results.CompressionRate = 1.f - Data.OutHits[0].Time;
 		Results.AirTime = 0.f;
@@ -86,7 +85,6 @@ void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, F
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No Hit"));
 		Results.IsGrounded = false;
 		Results.CompressionRate = 0.f;
 		Results.AirTime += GetWorld()->GetDeltaSeconds();

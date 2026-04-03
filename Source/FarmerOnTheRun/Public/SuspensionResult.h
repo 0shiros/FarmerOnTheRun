@@ -27,7 +27,7 @@ struct FSuspensionResult
 	float DriftRatio;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UPhysicalMaterial> PhysicalMaterial;
+	TObjectPtr<UPhysicalMaterial> PhysicalMaterial;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPrimitiveComponent> GroundComponent;

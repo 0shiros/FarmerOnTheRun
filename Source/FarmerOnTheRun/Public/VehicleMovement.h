@@ -15,6 +15,9 @@ class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UVehicleMovement();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Vehicle)
+	TObjectPtr<class APlayerVehicle> VehicleOwner;
 
 protected:
 	// Called when the game starts
@@ -25,4 +28,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	void Accelerate(float Value);
+	
+	void TurnLeftRight(float Value);
 };

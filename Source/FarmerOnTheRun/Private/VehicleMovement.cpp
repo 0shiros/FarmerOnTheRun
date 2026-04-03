@@ -2,6 +2,9 @@
 
 
 #include "VehicleMovement.h"
+#include "PlayerVehicle.h"
+#include "Components/ArrowComponent.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values for this component's properties
 UVehicleMovement::UVehicleMovement()
@@ -19,7 +22,12 @@ void UVehicleMovement::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	VehicleOwner = Cast<APlayerVehicle>(GetOwner());
+	
+	if (!VehicleOwner)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("UVehicleMovement::BeginPlay failed. Owner is not APlayerVehicle."));
+	}
 	
 }
 
@@ -33,7 +41,13 @@ void UVehicleMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 }
 
 void UVehicleMovement::Accelerate(float Value)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Acceleration: %f"), Value));
+{		
+	FVector Force = VehicleOwner->ArrowComponent->GetForwardVector() * Value * VehicleOwner->VehicleStats.AccelerationForce;
+	VehicleOwner->BoxCollisionComponent->AddForce(Force, NAME_None, true);
 }
 
+void UVehicleMovement::TurnLeftRight(float Value)
+{
+	FVector Torque = VehicleOwner->ArrowComponent->GetUpVector() * Value * VehicleOwner->VehicleStats.TuningForce; // Adjust the multiplier as needed for turning sensitivity
+	VehicleOwner->BoxCollisionComponent->AddTorqueInRadians(Torque, NAME_None, true);
+}

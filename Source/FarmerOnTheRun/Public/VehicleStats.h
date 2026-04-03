@@ -18,4 +18,10 @@ struct FVehicleStats
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	TObjectPtr<UCurveFloat> SuspensionResponseCurve;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	float AccelerationForce;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	float TuningForce;
 };

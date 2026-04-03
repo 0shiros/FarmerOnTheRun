@@ -31,7 +31,6 @@ APlayerVehicle::APlayerVehicle()
 	CameraComponent->SetupAttachment(SpringArmComponent);		
 	
 	SkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	BoxCollisionComponent->SetSimulatePhysics(true);
 	
 	TObjectPtr<USuspensionComponent> FrontLeftWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("FrontLeftWheel"));
 	FrontLeftWheel->SetupAttachment(BoxCollisionComponent);
@@ -56,6 +55,7 @@ APlayerVehicle::APlayerVehicle()
 void APlayerVehicle::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	
 	for (TObjectPtr Wheel : Wheels)
 	{
