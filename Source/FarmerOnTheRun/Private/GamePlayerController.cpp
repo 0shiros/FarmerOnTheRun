@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerVehicle.h"
+#include "VehicleMovement.h"
 
 void AGamePlayerController::Start()
 {
@@ -45,5 +46,5 @@ void AGamePlayerController::SetupInputComponent()
 
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
-	PlayerVehicule->Accelerate(Value.Get<float>());
+	PlayerVehicule->VehicleMovementComponent->Accelerate(Value.Get<float>());
 }

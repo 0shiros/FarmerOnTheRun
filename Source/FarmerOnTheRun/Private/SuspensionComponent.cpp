@@ -3,6 +3,8 @@
 
 #include "SuspensionComponent.h"
 
+#include "CollisionQueryParams.h"
+
 // Sets default values for this component's properties
 USuspensionComponent::USuspensionComponent()
 {
@@ -73,10 +75,26 @@ void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, F
 	if (Data.OutHits.Num())
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit at Time : ") + FString::SanitizeFloat(Data.OutHits[0].Time));
+		Results.IsGrounded = true;
+		Results.CompressionRate = 1.f - Data.OutHits[0].Time;
+		Results.AirTime = 0.f;
+		Results.RepulsionForce = (1.f - Data.OutHits[0].Time) * Strength * GetUpVector();
+		Results.GroundNormal = Data.OutHits[0].ImpactNormal;
+		Results.DriftRatio = FVector::DotProduct(GetOwner()->GetVelocity(), GetRightVector());
+		Results.PhysicalMaterial = Data.OutHits[0].PhysMaterial.Get();
+		Results.GroundComponent = Data.OutHits[0].GetComponent();
 	}
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No Hit"));
+		Results.IsGrounded = false;
+		Results.CompressionRate = 0.f;
+		Results.AirTime += GetWorld()->GetDeltaSeconds();
+		Results.RepulsionForce = FVector::ZeroVector;
+		Results.GroundNormal = FVector::ZeroVector;
+		Results.DriftRatio = 0.f;
+		Results.PhysicalMaterial = nullptr;
+		Results.GroundComponent = nullptr;
 	}
 }
 

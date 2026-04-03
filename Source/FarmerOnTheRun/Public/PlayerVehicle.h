@@ -34,6 +34,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Wheels)
 	TArray<TObjectPtr<class USuspensionComponent>> Wheels;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	TObjectPtr<class UVehicleMovement> VehicleMovementComponent;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
 	FVehicleStats VehicleStats;
 
@@ -45,7 +48,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	void SetRepulsionForce();
-	
-	void Accelerate(float Value);
+	void SetRepulsionForce();	
 };

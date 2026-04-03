@@ -11,8 +11,11 @@ struct FVehicleStats
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	float SuspensionHeight;
+	FVector2D SuspensionAmplitudes;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	float SuspensionStrength;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	TObjectPtr<UCurveFloat> SuspensionResponseCurve;
 };

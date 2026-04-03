@@ -2,8 +2,8 @@
 
 
 #include "PlayerVehicle.h"
-
 #include "SuspensionComponent.h"
+#include "VehicleMovement.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -47,12 +47,9 @@ APlayerVehicle::APlayerVehicle()
 	
 	TObjectPtr<USuspensionComponent> RearRightWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("RearRightWheel"));
 	RearRightWheel->SetupAttachment(BoxCollisionComponent);
-	Wheels.Add(RearRightWheel);
-
-    for (TObjectPtr Wheel : Wheels)
-    {
-	   
-    }
+	Wheels.Add(RearRightWheel);    
+	
+	VehicleMovementComponent = CreateDefaultSubobject<UVehicleMovement>(TEXT("VehicleMovementComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -60,6 +57,10 @@ void APlayerVehicle::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	for (TObjectPtr Wheel : Wheels)
+	{
+		Wheel->Initialize(BoxCollisionComponent, VehicleStats.SuspensionAmplitudes, VehicleStats.SuspensionStrength, VehicleStats.SuspensionResponseCurve);
+	}
 }
 
 // Called every frame
@@ -78,11 +79,5 @@ void APlayerVehicle::SetRepulsionForce()
 		FVector Location = Wheel->GetComponentLocation();
 		BoxCollisionComponent->AddForceAtLocation(Force, Location, NAME_None);
 	}
-}
-
-void APlayerVehicle::Accelerate(float Value)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Acceleration: %f"), Value));
-	
 }
 
