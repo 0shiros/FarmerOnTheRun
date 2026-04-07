@@ -68,6 +68,9 @@ void USuspensionComponent::PerformTrace()
 		ObjectQueryParams,
 		Query,
 		Handle);
+	
+	DrawDebugDirectionalArrow(GetWorld(), GetComponentLocation(), Start, 5.f, FColor::Red, false, -1.f, 0, 1.f);
+	DrawDebugDirectionalArrow(GetWorld(), GetComponentLocation(), End, 5.f, FColor::Green, false, -1.f, 0, 1.f);
 }
 
 void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, FTraceDatum& Data)
@@ -76,8 +79,8 @@ void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, F
 	{
 		Results.IsGrounded = true;
 		Results.CompressionRate = 1.f - Data.OutHits[0].Time;
+		Results.RepulsionForce = GetUpVector() * ResponseCurve->GetFloatValue(Results.CompressionRate) * Strength;
 		Results.AirTime = 0.f;
-		Results.RepulsionForce = (1.f - Data.OutHits[0].Time) * Strength * GetUpVector();
 		Results.GroundNormal = Data.OutHits[0].ImpactNormal;
 		Results.DriftRatio = FVector::DotProduct(GetOwner()->GetVelocity(), GetRightVector());
 		Results.PhysicalMaterial = Data.OutHits[0].PhysMaterial.Get();

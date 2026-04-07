@@ -29,5 +29,11 @@ public:
 	
 	void Accelerate(float Value);
 	
+	void Reverse(float Value);
+	
 	void TurnLeftRight(float Value);
+	
+	void ApplyLateralFriction(float DeltaTime);
+	
+	bool IsGrounded() const;
 };

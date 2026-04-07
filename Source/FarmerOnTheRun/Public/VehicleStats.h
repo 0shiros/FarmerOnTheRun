@@ -24,4 +24,7 @@ struct FVehicleStats
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	float TuningForce;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	float LateralFriction;
 };

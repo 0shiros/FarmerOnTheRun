@@ -49,13 +49,17 @@ APlayerVehicle::APlayerVehicle()
 	Wheels.Add(RearRightWheel);    
 	
 	VehicleMovementComponent = CreateDefaultSubobject<UVehicleMovement>(TEXT("VehicleMovementComponent"));
+	
+	BoxCollisionComponent->SetSimulatePhysics(true);
+	BoxCollisionComponent->SetLinearDamping(0.15f);   
+	BoxCollisionComponent->SetAngularDamping(5.f);    
+	BoxCollisionComponent->SetCenterOfMass(FVector(0.f, 0.f, -30.f));
 }
 
 // Called when the game starts or when spawned
 void APlayerVehicle::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	
 	for (TObjectPtr Wheel : Wheels)
 	{
@@ -77,7 +81,7 @@ void APlayerVehicle::SetRepulsionForce()
 	{
 		FVector Force = Wheel->GetResults().RepulsionForce;
 		FVector Location = Wheel->GetComponentLocation();
-		BoxCollisionComponent->AddForceAtLocation(Force, Location, NAME_None);
+		BoxCollisionComponent->AddForceAtLocation(Force, Location);
 	}
 }
 

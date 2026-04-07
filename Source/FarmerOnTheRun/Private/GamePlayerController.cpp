@@ -41,6 +41,7 @@ void AGamePlayerController::SetupInputComponent()
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnAcceleration);
+		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnReverse);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnTurnLeftRight);
 	}
 }
@@ -48,6 +49,11 @@ void AGamePlayerController::SetupInputComponent()
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
 	PlayerVehicule->VehicleMovementComponent->Accelerate(Value.Get<float>());
+}
+
+void AGamePlayerController::OnReverse(const FInputActionValue& Value)
+{
+	PlayerVehicule->VehicleMovementComponent->Reverse(Value.Get<float>());
 }
 
 void AGamePlayerController::OnTurnLeftRight(const FInputActionValue& Value)

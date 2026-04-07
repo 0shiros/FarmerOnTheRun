@@ -26,6 +26,9 @@ protected:
 	TObjectPtr<UInputAction> AccelerationAction;
 		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> ReverseAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> TurnLeftRightAction;
 	
 private:
@@ -35,6 +38,8 @@ public:
 	void Start();
 	
 	void OnAcceleration(const FInputActionValue& Value);	
+	
+	void OnReverse(const FInputActionValue& Value);
 	
 	void OnTurnLeftRight(const FInputActionValue& Value);
 };

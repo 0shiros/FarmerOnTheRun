@@ -3,6 +3,7 @@
 
 #include "VehicleMovement.h"
 #include "PlayerVehicle.h"
+#include "SuspensionComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 
@@ -37,17 +38,60 @@ void UVehicleMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	ApplyLateralFriction(DeltaTime);
+
 }
 
 void UVehicleMovement::Accelerate(float Value)
-{		
-	FVector Force = VehicleOwner->ArrowComponent->GetForwardVector() * Value * VehicleOwner->VehicleStats.AccelerationForce;
+{			
+	if (!IsGrounded()) return; 
+    
+	FVector Force = VehicleOwner->ArrowComponent->GetForwardVector()
+				  * Value
+				  * VehicleOwner->VehicleStats.AccelerationForce;
+	VehicleOwner->BoxCollisionComponent->AddForce(Force, NAME_None, true);
+}
+
+void UVehicleMovement::Reverse(float Value)
+{
+	if (!IsGrounded()) return;
+	
+	FVector Force = VehicleOwner->ArrowComponent->GetForwardVector()
+				  * Value
+				  * VehicleOwner->VehicleStats.AccelerationForce;
 	VehicleOwner->BoxCollisionComponent->AddForce(Force, NAME_None, true);
 }
 
 void UVehicleMovement::TurnLeftRight(float Value)
 {
-	FVector Torque = VehicleOwner->ArrowComponent->GetUpVector() * Value * VehicleOwner->VehicleStats.TuningForce; // Adjust the multiplier as needed for turning sensitivity
+	if (!IsGrounded()) return;
+    
+	FVector Torque = VehicleOwner->ArrowComponent->GetUpVector()
+				   * Value
+				   * VehicleOwner->VehicleStats.TuningForce;
 	VehicleOwner->BoxCollisionComponent->AddTorqueInRadians(Torque, NAME_None, true);
+}
+
+void UVehicleMovement::ApplyLateralFriction(float DeltaTime)
+{
+	int32 GroundedCount = 0;
+	
+	for (TObjectPtr Wheel : VehicleOwner->Wheels)
+		if (Wheel->GetResults().IsGrounded) GroundedCount++;
+
+	if (GroundedCount == 0) return;
+
+	FVector RightVec  = VehicleOwner->ArrowComponent->GetRightVector();
+	FVector Velocity  = VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity();
+	float   LateralSpeed = FVector::DotProduct(Velocity, RightVec);
+
+	FVector FrictionForce = -RightVec * LateralSpeed * VehicleOwner->VehicleStats.LateralFriction;
+	VehicleOwner->BoxCollisionComponent->AddForce(FrictionForce, NAME_None, false);
+}
+
+bool UVehicleMovement::IsGrounded() const
+{
+	for (TObjectPtr Wheel : VehicleOwner->Wheels)
+		if (Wheel->GetResults().IsGrounded) return true;
+	return false;
 }
