@@ -13,7 +13,7 @@
 APlayerVehicle::APlayerVehicle()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;	
+	PrimaryActorTick.bCanEverTick = false;	
 	
 	BoxCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollisionComponent"));
 	RootComponent = BoxCollisionComponent;
@@ -63,25 +63,8 @@ void APlayerVehicle::BeginPlay()
 	
 	for (TObjectPtr Wheel : Wheels)
 	{
-		Wheel->Initialize(BoxCollisionComponent, VehicleStats.SuspensionAmplitudes, VehicleStats.SuspensionStrength, VehicleStats.SuspensionResponseCurve);
+		Wheel->Initialize(this, VehicleStats.SuspensionRestDistance, VehicleStats.SuspensionSpringForce, VehicleStats.SuspensionSpringDamping);
 	}
 }
 
-// Called every frame
-void APlayerVehicle::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	SetRepulsionForce();
-}
-
-void APlayerVehicle::SetRepulsionForce()
-{
-	for (TObjectPtr Wheel : Wheels)
-	{
-		FVector Force = Wheel->GetResults().RepulsionForce;
-		FVector Location = Wheel->GetComponentLocation();
-		BoxCollisionComponent->AddForceAtLocation(Force, Location);
-	}
-}
 

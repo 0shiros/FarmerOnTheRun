@@ -10,21 +10,42 @@ struct FVehicleStats
 {
 	GENERATED_BODY()
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Suspension)
+	float SuspensionRestDistance = 35.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Suspension)
+	float SuspensionSpringForce = 1000.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Suspension)
+	float SuspensionSpringDamping = 500.f;
+		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	FVector2D SuspensionAmplitudes;
+	float AccelerationForce = 3000.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	float SuspensionStrength;
+	float DecelerationForce = 1500.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	TObjectPtr<UCurveFloat> SuspensionResponseCurve;
+	TObjectPtr<UCurveFloat> AccelerationTorqueCurve;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	float AccelerationForce;
+	TObjectPtr<UCurveFloat> ReverseTorqueCurve;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	float TuningForce;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float TopSpeed = 6000.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	float LateralFriction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float ReverseTopSpeed = 3000.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float TurnTorque = 7.5f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float DefaultGripFactor = 1.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float DriftingGripFactor = 0.2f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+    bool IsDrifting;
 };

@@ -43,6 +43,8 @@ void AGamePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnAcceleration);
 		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnReverse);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnTurnLeftRight);
+		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnDrift);
+		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Completed, this, &AGamePlayerController::OnDrift);
 	}
 }
 
@@ -58,6 +60,10 @@ void AGamePlayerController::OnReverse(const FInputActionValue& Value)
 
 void AGamePlayerController::OnTurnLeftRight(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Turn Value: %f"), Value.Get<float>()));
 	PlayerVehicule->VehicleMovementComponent->TurnLeftRight(Value.Get<float>());
+}
+
+void AGamePlayerController::OnDrift(const FInputActionValue& Value)
+{
+	PlayerVehicule->VehicleMovementComponent->Drift(Value.Get<bool>());
 }

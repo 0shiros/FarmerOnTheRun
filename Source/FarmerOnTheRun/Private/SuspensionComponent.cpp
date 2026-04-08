@@ -2,25 +2,22 @@
 
 
 #include "SuspensionComponent.h"
-
+#include "PlayerVehicle.h"
 #include "CollisionQueryParams.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values for this component's properties
 USuspensionComponent::USuspensionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 
 // Called when the game starts
 void USuspensionComponent::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 	Query = FCollisionQueryParams(FName(TEXT("")), false, GetOwner());
-	Handle = new FTraceDelegate();
-	Handle->BindUObject(this, &USuspensionComponent::OnTraceCompleted);
 }
 
 
@@ -31,72 +28,78 @@ void USuspensionComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	PerformTrace();
 }
 
-void USuspensionComponent::Initialize(UPrimitiveComponent* InUpdatedComponent, const FVector2D& InAmplitudes, const float InStrength,
-	UCurveFloat* InResponseCurve)
+void USuspensionComponent::Initialize(APlayerVehicle* NewOwningVehicle, float NewRestDist, float NewSpringForce, float NewSpringDamping)
 {
-	this->UpdatedComponent = InUpdatedComponent;
-	this->Amplitudes = InAmplitudes;
-	this->Strength = InStrength;
-	this->ResponseCurve = InResponseCurve;
-	
-	if (this->UpdatedComponent && this->ResponseCurve) 
-	{
-		SetComponentTickEnabled(true);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("USuspensionComponent::Init failed. UpdatedComponent or ResponseCurve is null."));
-		SetComponentTickEnabled(false);
-	}
+	OwningVehicle = NewOwningVehicle;
+	SuspensionStats.SpringForce = NewSpringForce;
+	SuspensionStats.SpringDamping = NewSpringDamping;
+	SuspensionStats.RestDist = NewRestDist;
 }
 
-FSuspensionResult USuspensionComponent::GetResults()
+const FHitResult& USuspensionComponent::GetResults() const
 {
-	return Results;
+	return OutHit;
 }
 
 void USuspensionComponent::PerformTrace()
 {
-	const FVector Start = GetComponentLocation() + GetUpVector() * Amplitudes.X;
-	const FVector End = GetComponentLocation() - GetUpVector() * Amplitudes.Y;
+	if (!OwningVehicle) return;
+	
+	const FVector Start = GetComponentLocation();
+	const FVector End = Start - GetUpVector() * SuspensionStats.RestDist;
 	FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(ECC_WorldStatic | ECC_WorldDynamic);
 	
-	GetWorld()->AsyncLineTraceByObjectType(
-		EAsyncTraceType::Single,
-		Start,
-		End,
-		ObjectQueryParams,
-		Query,
-		Handle);
+	GetWorld()->LineTraceSingleByObjectType(
+		OutHit, 
+		Start, 
+		End, 
+		ObjectQueryParams, 
+		Query);
 	
-	DrawDebugDirectionalArrow(GetWorld(), GetComponentLocation(), Start, 5.f, FColor::Red, false, -1.f, 0, 1.f);
-	DrawDebugDirectionalArrow(GetWorld(), GetComponentLocation(), End, 5.f, FColor::Green, false, -1.f, 0, 1.f);
+	OnTraceCompleted();
+	
+	#if ENABLE_DRAW_DEBUG
+	DrawDebugLine(
+		GetWorld(),
+		Start, 
+		End, 
+		OutHit.bBlockingHit ? FColor::Green : FColor::Red,
+		false, 
+		-1.f, 
+		0, 
+		2.f
+		);
+	#endif	
 }
 
-void USuspensionComponent::OnTraceCompleted(const FTraceHandle& CurrentHandle, FTraceDatum& Data)
+
+void USuspensionComponent::OnTraceCompleted()
 {
-	if (Data.OutHits.Num())
+	if (OutHit.bBlockingHit)
 	{
-		Results.IsGrounded = true;
-		Results.CompressionRate = 1.f - Data.OutHits[0].Time;
-		Results.RepulsionForce = GetUpVector() * ResponseCurve->GetFloatValue(Results.CompressionRate) * Strength;
-		Results.AirTime = 0.f;
-		Results.GroundNormal = Data.OutHits[0].ImpactNormal;
-		Results.DriftRatio = FVector::DotProduct(GetOwner()->GetVelocity(), GetRightVector());
-		Results.PhysicalMaterial = Data.OutHits[0].PhysMaterial.Get();
-		Results.GroundComponent = Data.OutHits[0].GetComponent();
+		SuspensionStats.IsGrounded = true;
 	}
 	else
 	{
-		Results.IsGrounded = false;
-		Results.CompressionRate = 0.f;
-		Results.AirTime += GetWorld()->GetDeltaSeconds();
-		Results.RepulsionForce = FVector::ZeroVector;
-		Results.GroundNormal = FVector::ZeroVector;
-		Results.DriftRatio = 0.f;
-		Results.PhysicalMaterial = nullptr;
-		Results.GroundComponent = nullptr;
+		SuspensionStats.IsGrounded = false;
 	}
+}
+
+FVector USuspensionComponent::CalculateSuspension(float OutDistance)
+{
+	if (!OwningVehicle || !SuspensionStats.IsGrounded) return FVector::ZeroVector;
+	
+	FVector VelocityAtPoint = OwningVehicle->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());	
+	float Damping = FVector::DotProduct(VelocityAtPoint, OutHit.ImpactNormal) * SuspensionStats.SpringDamping;	
+	float SuspensionForce = (SuspensionStats.RestDist - OutDistance)* SuspensionStats.SpringForce;		
+	FVector ForwardSpeed = OutHit.ImpactNormal * (SuspensionForce - Damping);
+	
+	return ForwardSpeed ;
+}
+
+bool USuspensionComponent::GetIsGrounded() const
+{
+	return SuspensionStats.IsGrounded;
 }
 
 

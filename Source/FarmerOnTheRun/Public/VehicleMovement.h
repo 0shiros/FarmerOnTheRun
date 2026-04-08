@@ -18,7 +18,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Vehicle)
 	TObjectPtr<class APlayerVehicle> VehicleOwner;
-
+		
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -27,13 +27,21 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
+	void ApplyDriveForce(float Value, float TopSpeed, float DriveForce, UCurveFloat* TorqueCurve);
+
 	void Accelerate(float Value);
 	
 	void Reverse(float Value);
 	
 	void TurnLeftRight(float Value);
 	
-	void ApplyLateralFriction(float DeltaTime);
+	void LateralSlipping();
+	
+	void SetRepulsionForce();
+	
+	void Drift(bool bIsDrifting);
 	
 	bool IsGrounded() const;
+	
+	void ShowVehicleSpeed() const;
 };

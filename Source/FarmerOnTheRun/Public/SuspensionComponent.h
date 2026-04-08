@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SuspensionResult.h"
+#include "SuspensionStats.h"
 #include "Components/SceneComponent.h"
 #include "SuspensionComponent.generated.h"
 
@@ -17,23 +17,15 @@ public:
 	USuspensionComponent();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPrimitiveComponent> UpdatedComponent;
+	TObjectPtr<class APlayerVehicle> OwningVehicle;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector2D Amplitudes;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Strength;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UCurveFloat> ResponseCurve;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FSuspensionResult Results;
-	
 protected:
 	
-	FTraceDelegate* Handle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FSuspensionStats SuspensionStats;
+	
+	FHitResult OutHit;
 	FCollisionQueryParams Query;
 
 protected:
@@ -44,11 +36,15 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	void Initialize(UPrimitiveComponent* InUpdatedComponent, const FVector2D& InAmplitudes, const float InStrength, UCurveFloat* InResponseCurve);
-	
-	FSuspensionResult GetResults();
+	void Initialize(APlayerVehicle* NewOwningVehicle, float NewRestDist, float NewSpringForce, float NewSpringDamping);
+		
+	const FHitResult& GetResults() const;
 	
 	void PerformTrace();
 	
-	void OnTraceCompleted(const FTraceHandle& CurrentHandle, FTraceDatum& Data);
+	void OnTraceCompleted();
+	
+	FVector CalculateSuspension(float OutDistance);
+	
+	bool GetIsGrounded() const;
 };

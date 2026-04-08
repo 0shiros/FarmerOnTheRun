@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> TurnLeftRightAction;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> DriftAction;
+	
 private:
 	virtual void SetupInputComponent() override;
 	
@@ -42,4 +45,6 @@ public:
 	void OnReverse(const FInputActionValue& Value);
 	
 	void OnTurnLeftRight(const FInputActionValue& Value);
+	
+	void OnDrift(const FInputActionValue& Value);
 };
