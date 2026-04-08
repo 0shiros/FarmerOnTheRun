@@ -43,5 +43,5 @@ public:
 	
 	bool IsGrounded() const;
 	
-	void ShowVehicleSpeed() const;
+	int GetSpeedInKmh() const;
 };

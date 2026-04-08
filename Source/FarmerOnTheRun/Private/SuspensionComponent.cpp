@@ -93,7 +93,7 @@ FVector USuspensionComponent::CalculateSuspension(float OutDistance)
 	float Damping = FVector::DotProduct(VelocityAtPoint, OutHit.ImpactNormal) * SuspensionStats.SpringDamping;	
 	float SuspensionForce = (SuspensionStats.RestDist - OutDistance)* SuspensionStats.SpringForce;		
 	FVector ForwardSpeed = OutHit.ImpactNormal * (SuspensionForce - Damping);
-	
+		
 	return ForwardSpeed ;
 }
 

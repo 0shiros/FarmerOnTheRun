@@ -39,20 +39,22 @@ void UVehicleMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	
 	LateralSlipping();
 	SetRepulsionForce();
-	ShowVehicleSpeed();
 }
 
 void UVehicleMovement::ApplyDriveForce(float Value, float TopSpeed, float DriveForce, UCurveFloat* TorqueCurve)
 {
 	if (!IsGrounded() || TorqueCurve == nullptr) return;
     
-	float ForwardSpeed = FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(),VehicleOwner->ArrowComponent->GetForwardVector());
+	float ForwardSpeed = FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(),
+		VehicleOwner->ArrowComponent->GetForwardVector());
 	
 	if (FMath::Abs(ForwardSpeed) <= TopSpeed)
 	{
 		float SpeedRatio = FMath::Clamp(FMath::Abs(ForwardSpeed) / TopSpeed, 0.f, 1.f);
 		SpeedRatio = TorqueCurve->GetFloatValue(SpeedRatio);
 		FVector Force = SpeedRatio * Value * DriveForce * VehicleOwner->ArrowComponent->GetForwardVector();
+		
+		GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Green, FString::Printf(TEXT("Applying Force: %s"), *Force.ToString()));
 		
 		VehicleOwner->BoxCollisionComponent->AddForce(Force, NAME_None, true);
 	}
@@ -62,20 +64,23 @@ void UVehicleMovement::Accelerate(float Value)
 { 
 	if (!IsGrounded() || !VehicleOwner) return;
 	
-	ApplyDriveForce(Value, VehicleOwner->VehicleStats.TopSpeed, VehicleOwner->VehicleStats.AccelerationForce, VehicleOwner->VehicleStats.AccelerationTorqueCurve); 
+	ApplyDriveForce(Value, VehicleOwner->VehicleStats.TopSpeed, VehicleOwner->VehicleStats.AccelerationForce, 
+		VehicleOwner->VehicleStats.AccelerationTorqueCurve); 
 }
 void UVehicleMovement::Reverse(float Value)    
 { 
 	if (!IsGrounded() || !VehicleOwner) return;
 
-	ApplyDriveForce(Value, VehicleOwner->VehicleStats.ReverseTopSpeed, VehicleOwner->VehicleStats.DecelerationForce, VehicleOwner->VehicleStats.ReverseTorqueCurve); 
+	ApplyDriveForce(Value, VehicleOwner->VehicleStats.ReverseTopSpeed, VehicleOwner->VehicleStats.DecelerationForce, 
+		VehicleOwner->VehicleStats.ReverseTorqueCurve); 
 }
 
 void UVehicleMovement::TurnLeftRight(float Value)
 {
-	if (!IsGrounded() || !VehicleOwner || VehicleOwner->CurrentSpeed == 0) return;
-		
+	if (!IsGrounded() || !VehicleOwner || GetSpeedInKmh() == 0) return;
+	
 	FVector Torque = FVector(0.f, 0.f, Value * VehicleOwner->VehicleStats.TurnTorque);
+	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, FString::Printf(TEXT("Applying Torque: %s"), *Torque.ToString()));
 	
 	VehicleOwner->BoxCollisionComponent->AddTorqueInRadians(Torque, NAME_None, true);
 }
@@ -88,7 +93,8 @@ void UVehicleMovement::LateralSlipping()
 	{
 		if (!Wheel->GetIsGrounded()) continue;
 		
-		float VelocityDot = FVector::DotProduct(Wheel->GetRightVector(), VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()));
+		float VelocityDot = FVector::DotProduct(Wheel->GetRightVector(), 
+			VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()));
 		float CurrentGripFactor = VehicleOwner->VehicleStats.IsDrifting ? VehicleOwner->VehicleStats.DriftingGripFactor : VehicleOwner->VehicleStats.DefaultGripFactor;
 		FVector LateralForce = -(VelocityDot * Wheel->GetRightVector()) * CurrentGripFactor;
 
@@ -125,9 +131,7 @@ bool UVehicleMovement::IsGrounded() const
 	return false;
 }
 
-void UVehicleMovement::ShowVehicleSpeed() const
-{	
-	if (!VehicleOwner) return;
-	
-	VehicleOwner->CurrentSpeed = FMath::Abs(FMath::RoundToInt(FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(), VehicleOwner->ArrowComponent->GetForwardVector()) * 0.036f));
+int UVehicleMovement::GetSpeedInKmh() const
+{
+	return FMath::Abs(FMath::RoundToInt(FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(), VehicleOwner->ArrowComponent->GetForwardVector()) * 0.036f));	
 }
