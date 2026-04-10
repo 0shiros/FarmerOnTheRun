@@ -28,9 +28,8 @@ void USuspensionComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	PerformTrace();
 }
 
-void USuspensionComponent::Initialize(APlayerVehicle* NewOwningVehicle, float NewRestDist, float NewSpringForce, float NewSpringDamping)
+void USuspensionComponent::Initialize(float NewRestDist, float NewSpringForce, float NewSpringDamping)
 {
-	OwningVehicle = NewOwningVehicle;
 	SuspensionStats.SpringForce = NewSpringForce;
 	SuspensionStats.SpringDamping = NewSpringDamping;
 	SuspensionStats.RestDist = NewRestDist;
@@ -42,11 +41,9 @@ const FHitResult& USuspensionComponent::GetResults() const
 }
 
 void USuspensionComponent::PerformTrace()
-{
-	if (!OwningVehicle) return;
-	
+{	
 	const FVector Start = GetComponentLocation();
-	const FVector End = Start - GetUpVector() * SuspensionStats.RestDist;
+	const FVector End = Start - GetUpVector() *  SuspensionStats.RestDist;
 	FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(ECC_WorldStatic | ECC_WorldDynamic);
 	
 	GetWorld()->LineTraceSingleByObjectType(
@@ -58,18 +55,17 @@ void USuspensionComponent::PerformTrace()
 	
 	OnTraceCompleted();
 	
-	#if ENABLE_DRAW_DEBUG
-	DrawDebugLine(
+	DrawDebugDirectionalArrow(
 		GetWorld(),
-		Start, 
-		End, 
-		OutHit.bBlockingHit ? FColor::Green : FColor::Red,
-		false, 
-		-1.f, 
-		0, 
-		2.f
-		);
-	#endif	
+		Start,
+		Start - GetUpVector() *  SuspensionStats.RestDist * 2.f,
+		10.f,
+		FColor::Yellow,
+		false,
+		-1.f,
+		0,
+		2.f);
+	
 }
 
 
@@ -85,16 +81,15 @@ void USuspensionComponent::OnTraceCompleted()
 	}
 }
 
-FVector USuspensionComponent::CalculateSuspension(float OutDistance)
-{
-	if (!OwningVehicle || !SuspensionStats.IsGrounded) return FVector::ZeroVector;
-	
-	FVector VelocityAtPoint = OwningVehicle->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());	
-	float Damping = FVector::DotProduct(VelocityAtPoint, OutHit.ImpactNormal) * SuspensionStats.SpringDamping;	
-	float SuspensionForce = (SuspensionStats.RestDist - OutDistance)* SuspensionStats.SpringForce;		
-	FVector ForwardSpeed = OutHit.ImpactNormal * (SuspensionForce - Damping);
-		
-	return ForwardSpeed ;
+FVector USuspensionComponent::CalculateSuspension(APlayerVehicle* VehiclePlayer, float OutDistance)
+{	
+	FVector springDir = OutHit.ImpactNormal;
+	FVector tireWorldVel = VehiclePlayer->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());
+	float offSet = SuspensionStats.RestDist - OutDistance;
+	float vel = FVector::DotProduct(springDir, tireWorldVel);
+	float force = (offSet * SuspensionStats.SpringForce) - (vel * SuspensionStats.SpringDamping);
+	FVector suspensionForce = springDir * force;
+	return suspensionForce;
 }
 
 bool USuspensionComponent::GetIsGrounded() const

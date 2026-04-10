@@ -7,6 +7,8 @@
 #include "Components/SceneComponent.h"
 #include "SuspensionComponent.generated.h"
 
+class APlayerVehicle;
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FARMERONTHERUN_API USuspensionComponent : public USceneComponent
 {
@@ -15,11 +17,7 @@ class FARMERONTHERUN_API USuspensionComponent : public USceneComponent
 public:	
 	// Sets default values for this component's properties
 	USuspensionComponent();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class APlayerVehicle> OwningVehicle;
-	
-		
+			
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -36,7 +34,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	void Initialize(APlayerVehicle* NewOwningVehicle, float NewRestDist, float NewSpringForce, float NewSpringDamping);
+	void Initialize( float NewRestDist, float NewSpringForce, float NewSpringDamping);
 		
 	const FHitResult& GetResults() const;
 	
@@ -44,7 +42,7 @@ public:
 	
 	void OnTraceCompleted();
 	
-	FVector CalculateSuspension(float OutDistance);
+	FVector CalculateSuspension(APlayerVehicle* VehiclePlayer, float OutDistance);
 	
 	bool GetIsGrounded() const;
 };

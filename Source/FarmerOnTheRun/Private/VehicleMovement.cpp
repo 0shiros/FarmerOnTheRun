@@ -29,6 +29,8 @@ void UVehicleMovement::BeginPlay()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("UVehicleMovement::BeginPlay failed. Owner is not APlayerVehicle."));
 	}	
+	
+	VehicleOwner->BoxCollisionComponent->SetAngularDamping(VehicleOwner->GetVehicleStats().DefaultAngularDamping);
 }
 
 
@@ -37,69 +39,75 @@ void UVehicleMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	LateralSlipping();
-	SetRepulsionForce();
+	SetRepulsionForce();	
 }
 
-void UVehicleMovement::ApplyDriveForce(float Value, float TopSpeed, float DriveForce, UCurveFloat* TorqueCurve)
+float UVehicleMovement::GetNormalizeSpeed(float MaxSpeed)
 {
-	if (!IsGrounded() || TorqueCurve == nullptr) return;
-    
-	float ForwardSpeed = FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(),
-		VehicleOwner->ArrowComponent->GetForwardVector());
+	FVector linearVelocity = VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity();
+	float vehicleSpeed = FVector::DotProduct(VehicleOwner->ArrowComponent->GetForwardVector(), linearVelocity);
+	vehicleSpeed = FMath::Abs(linearVelocity.Length()) > 0 ? vehicleSpeed : 0.01f;
+	NormalizeSpeed = FMath::Abs(vehicleSpeed) / MaxSpeed;
+	NormalizeSpeed = FMath::Clamp(NormalizeSpeed, 0.f, 1.f);
+	return NormalizeSpeed;
+}
+
+int UVehicleMovement::GetSpeedInKmh()
+{
+	return FMath::Abs(FMath::RoundToInt(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity().Size() * 0.036f));
+}
+
+void UVehicleMovement::ApplyDriveForce(float Value, float MaxSpeed, float ForceMultiplier)
+{
+	if (GetSpeedInKmh() >= MaxSpeed) return;
 	
-	if (FMath::Abs(ForwardSpeed) <= TopSpeed)
+	for (TObjectPtr Wheel : VehicleOwner->Wheels)
 	{
-		float SpeedRatio = FMath::Clamp(FMath::Abs(ForwardSpeed) / TopSpeed, 0.f, 1.f);
-		SpeedRatio = TorqueCurve->GetFloatValue(SpeedRatio);
-		FVector Force = SpeedRatio * Value * DriveForce * VehicleOwner->ArrowComponent->GetForwardVector();
+		if (!Wheel->GetIsGrounded()) continue;
+				
+		FVector accelDir = Wheel->GetForwardVector();
+		float accelCurve = VehicleOwner->GetVehicleStats().AccelerationTorqueCurve->GetFloatValue(FMath::Abs(GetNormalizeSpeed(MaxSpeed)));
+		FVector accelForce = accelCurve * Value * accelDir * ForceMultiplier * VehicleOwner->BoxCollisionComponent->GetMass();
+			VehicleOwner->BoxCollisionComponent->AddForceAtLocation(accelForce, Wheel->GetComponentLocation());
 		
-		GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Green, FString::Printf(TEXT("Applying Force: %s"), *Force.ToString()));
+		DrawDebugDirectionalArrow(
+			GetWorld(),
+			Wheel->GetComponentLocation(),
+			Wheel->GetComponentLocation() + accelForce * 0.1f,
+			10.f,
+			FColor::Green,
+			false,
+			-1.f,
+			0,
+			2.f);
 		
-		VehicleOwner->BoxCollisionComponent->AddForce(Force, NAME_None, true);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Velocity: %s"), *VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity().ToString()));
+		
 	}
 }
+
 
 void UVehicleMovement::Accelerate(float Value) 
 { 
 	if (!IsGrounded() || !VehicleOwner) return;
 	
-	ApplyDriveForce(Value, VehicleOwner->VehicleStats.TopSpeed, VehicleOwner->VehicleStats.AccelerationForce, 
-		VehicleOwner->VehicleStats.AccelerationTorqueCurve); 
+	ApplyDriveForce(Value, VehicleOwner->GetVehicleStats().TopSpeed, VehicleOwner->GetVehicleStats().AccelerationForce);
+	
 }
 void UVehicleMovement::Reverse(float Value)    
 { 
 	if (!IsGrounded() || !VehicleOwner) return;
 
-	ApplyDriveForce(Value, VehicleOwner->VehicleStats.ReverseTopSpeed, VehicleOwner->VehicleStats.DecelerationForce, 
-		VehicleOwner->VehicleStats.ReverseTorqueCurve); 
+	ApplyDriveForce(Value, VehicleOwner->GetVehicleStats().ReverseTopSpeed, VehicleOwner->GetVehicleStats().DecelerationForce);
 }
 
 void UVehicleMovement::TurnLeftRight(float Value)
-{
-	if (!IsGrounded() || !VehicleOwner || GetSpeedInKmh() == 0) return;
-	
-	FVector Torque = FVector(0.f, 0.f, Value * VehicleOwner->VehicleStats.TurnTorque);
-	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, FString::Printf(TEXT("Applying Torque: %s"), *Torque.ToString()));
-	
-	VehicleOwner->BoxCollisionComponent->AddTorqueInRadians(Torque, NAME_None, true);
-}
-
-void UVehicleMovement::LateralSlipping()
-{
-	if (!IsGrounded() || !VehicleOwner) return;	
-	
-	for (TObjectPtr Wheel : VehicleOwner->Wheels)
-	{
-		if (!Wheel->GetIsGrounded()) continue;
+{	
+	if (!IsGrounded() || !VehicleOwner || GetSpeedInKmh() < 1) return;
 		
-		float VelocityDot = FVector::DotProduct(Wheel->GetRightVector(), 
-			VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()));
-		float CurrentGripFactor = VehicleOwner->VehicleStats.IsDrifting ? VehicleOwner->VehicleStats.DriftingGripFactor : VehicleOwner->VehicleStats.DefaultGripFactor;
-		FVector LateralForce = -(VelocityDot * Wheel->GetRightVector()) * CurrentGripFactor;
-
-		VehicleOwner->BoxCollisionComponent->AddForceAtLocation(LateralForce, Wheel->GetComponentLocation(), NAME_None);
-	}
+	float turnTorque = VehicleOwner->GetVehicleStats().TurnTorque * Value * NormalizeSpeed;
+	FVector turnForce = FVector(0.f, 0.f, turnTorque) * VehicleOwner->BoxCollisionComponent->GetMass();
+	VehicleOwner->BoxCollisionComponent->AddTorqueInRadians(turnForce);	
 }
 
 void UVehicleMovement::SetRepulsionForce()
@@ -108,18 +116,42 @@ void UVehicleMovement::SetRepulsionForce()
 	
 	for (TObjectPtr Wheel : VehicleOwner->Wheels)
 	{
-		FVector Force = Wheel->CalculateSuspension(Wheel->GetResults().Distance);
+		if (!Wheel->GetIsGrounded()) continue;
+		
+		FVector Force = Wheel->CalculateSuspension(VehicleOwner, Wheel->GetResults().Distance);
 		FVector Location = Wheel->GetComponentLocation();	
 		
 		VehicleOwner->BoxCollisionComponent->AddForceAtLocation(Force, Location);
+		
+		DrawDebugDirectionalArrow(
+			GetWorld(),
+			Location,
+			Location + Force * 0.1f,
+			10.f,
+			FColor::Blue,
+			false,
+			-1.f,
+			0,
+			2.f);
 	}
 }
 
 void UVehicleMovement::Drift(bool bIsDrifting)
 {
-	if (!IsGrounded() || !VehicleOwner) return;
+	if (!VehicleOwner) return;
 	
-	VehicleOwner->VehicleStats.IsDrifting = bIsDrifting;	
+	VehicleOwner->SetDrifting(bIsDrifting);
+	
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Drifting: %s"), bIsDrifting ? TEXT("True") : TEXT("False")));
+	
+	if (bIsDrifting)
+	{
+		VehicleOwner->BoxCollisionComponent->SetAngularDamping(VehicleOwner->GetVehicleStats().DriftingAngularDamping);
+	}
+	else
+	{
+		VehicleOwner->BoxCollisionComponent->SetAngularDamping(VehicleOwner->GetVehicleStats().DefaultAngularDamping);
+	}
 }
 
 bool UVehicleMovement::IsGrounded() const
@@ -129,9 +161,4 @@ bool UVehicleMovement::IsGrounded() const
 	for (TObjectPtr Wheel : VehicleOwner->Wheels)
 		if (Wheel->GetIsGrounded()) return true;
 	return false;
-}
-
-int UVehicleMovement::GetSpeedInKmh() const
-{
-	return FMath::Abs(FMath::RoundToInt(FVector::DotProduct(VehicleOwner->BoxCollisionComponent->GetPhysicsLinearVelocity(), VehicleOwner->ArrowComponent->GetForwardVector()) * 0.036f));	
 }

@@ -63,7 +63,7 @@ void APlayerVehicle::BeginPlay()
 	
 	for (TObjectPtr Wheel : Wheels)
 	{
-		Wheel->Initialize(this, VehicleStats.SuspensionRestDistance, VehicleStats.SuspensionSpringForce, VehicleStats.SuspensionSpringDamping);
+		Wheel->Initialize(VehicleStats.SuspensionRestDistance, VehicleStats.SuspensionSpringForce, VehicleStats.SuspensionSpringDamping);
 	}
 }
 

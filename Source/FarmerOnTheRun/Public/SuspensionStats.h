@@ -10,15 +10,15 @@ struct FSuspensionStats
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool IsGrounded;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float RestDist;	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float SpringForce;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float SpringDamping;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float SpringDamping;	
 };

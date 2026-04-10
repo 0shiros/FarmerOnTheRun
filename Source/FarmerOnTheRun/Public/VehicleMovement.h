@@ -16,8 +16,11 @@ public:
 	// Sets default values for this component's properties
 	UVehicleMovement();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Vehicle)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
 	TObjectPtr<class APlayerVehicle> VehicleOwner;
+		
+protected:
+	float NormalizeSpeed;
 		
 protected:
 	// Called when the game starts
@@ -27,21 +30,22 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	void ApplyDriveForce(float Value, float TopSpeed, float DriveForce, UCurveFloat* TorqueCurve);
-
+	float GetNormalizeSpeed(float MaxSpeed);
+	
+	UFUNCTION(BlueprintCallable)
+	int GetSpeedInKmh();
+	
+	void ApplyDriveForce(float Value, float MaxSpeed, float ForceMultiplier);
+	
 	void Accelerate(float Value);
 	
 	void Reverse(float Value);
-	
-	void TurnLeftRight(float Value);
-	
-	void LateralSlipping();
+		
+	void TurnLeftRight(float Value);	
 	
 	void SetRepulsionForce();
 	
 	void Drift(bool bIsDrifting);
 	
-	bool IsGrounded() const;
-	
-	int GetSpeedInKmh() const;
+	bool IsGrounded() const;	
 };

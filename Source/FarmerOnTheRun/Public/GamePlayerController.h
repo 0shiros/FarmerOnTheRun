@@ -46,5 +46,8 @@ public:
 	
 	void OnTurnLeftRight(const FInputActionValue& Value);
 	
-	void OnDrift(const FInputActionValue& Value);
+	void OnDriftStarted(const FInputActionValue& Value);
+	
+	void OnDriftCompleted(const FInputActionValue& Value);
+
 };

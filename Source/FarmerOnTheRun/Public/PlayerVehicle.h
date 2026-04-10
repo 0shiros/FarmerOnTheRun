@@ -16,31 +16,37 @@ public:
 	// Sets default values for this pawn's properties
 	APlayerVehicle();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<class UCameraComponent> CameraComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SpringArm)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<class USpringArmComponent> SpringArmComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = BoxCollision)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BoxCollision")
 	TObjectPtr<class UBoxComponent> BoxCollisionComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SkeletalMesh)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkeletalMesh")
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Arrow)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Arrow")
 	TObjectPtr<class UArrowComponent> ArrowComponent;		
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Wheels)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wheels")
 	TArray<TObjectPtr<class USuspensionComponent>> Wheels;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	TObjectPtr<class UVehicleMovement> VehicleMovementComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FVehicleStats VehicleStats;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+public :
+	FVehicleStats GetVehicleStats() const { return VehicleStats; }
+	void SetDrifting(bool bIsDrifting) { VehicleStats.IsDrifting = bIsDrifting; }
+	
 };
