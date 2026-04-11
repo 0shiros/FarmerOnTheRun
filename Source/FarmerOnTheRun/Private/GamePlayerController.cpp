@@ -50,25 +50,25 @@ void AGamePlayerController::SetupInputComponent()
 
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->Accelerate(Value.Get<float>());
+	
 }
 
 void AGamePlayerController::OnReverse(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->Reverse(Value.Get<float>());
+	
 }
 
 void AGamePlayerController::OnTurnLeftRight(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->TurnLeftRight(Value.Get<float>());
+	
 }
 
 void AGamePlayerController::OnDriftStarted(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->Drift(true);
+	
 }
 
 void AGamePlayerController::OnDriftCompleted(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->Drift(false);
+	
 }

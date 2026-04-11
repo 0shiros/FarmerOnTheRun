@@ -14,38 +14,15 @@ class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
-	UVehicleMovement();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
-	TObjectPtr<class APlayerVehicle> VehicleOwner;
-		
-protected:
-	float NormalizeSpeed;
-		
+	UVehicleMovement();		
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+public:
 	
-	float GetNormalizeSpeed(float MaxSpeed);
+	void MoveForward(float Value);
 	
-	UFUNCTION(BlueprintCallable)
-	int GetSpeedInKmh();
-	
-	void ApplyDriveForce(float Value, float MaxSpeed, float ForceMultiplier);
-	
-	void Accelerate(float Value);
-	
-	void Reverse(float Value);
-		
-	void TurnLeftRight(float Value);	
-	
-	void SetRepulsionForce();
-	
-	void Drift(bool bIsDrifting);
-	
-	bool IsGrounded() const;	
+	void MoveRight(float Value);
 };

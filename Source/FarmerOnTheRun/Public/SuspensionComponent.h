@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SuspensionStats.h"
+#include "Components/BoxComponent.h"
 #include "Components/SceneComponent.h"
 #include "SuspensionComponent.generated.h"
 
-class APlayerVehicle;
+class UVehicleData;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FARMERONTHERUN_API USuspensionComponent : public USceneComponent
@@ -20,29 +20,19 @@ public:
 			
 protected:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FSuspensionStats SuspensionStats;
+	FHitResult SuspensionHit;	
+	FCollisionQueryParams SuspensionQueryParams;	
 	
-	FHitResult OutHit;
-	FCollisionQueryParams Query;
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
-	void Initialize( float NewRestDist, float NewSpringForce, float NewSpringDamping);
+	bool bIsGrounded = false;
 		
-	const FHitResult& GetResults() const;
+protected:
+
+	virtual void BeginPlay() override;
 	
-	void PerformTrace();
+public :
+		
+	void PerformSuspensionTrace(const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector);
 	
-	void OnTraceCompleted();
-	
-	FVector CalculateSuspension(APlayerVehicle* VehiclePlayer, float OutDistance);
-	
-	bool GetIsGrounded() const;
+	FVector CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector);	
 };
+
