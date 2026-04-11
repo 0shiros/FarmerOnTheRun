@@ -18,6 +18,15 @@ public:
 	UPROPERTY(EditAnywhere, Category="Engine")
 	float EngineForce = 8000.f;
 	
+	UPROPERTY(EditAnywhere, Category="Engine")
+	float MaxSpeed = 2000.f;
+	
+	UPROPERTY(EditAnywhere, Category="Engine")
+	TObjectPtr<UCurveFloat> AccelerationCurve;
+	
+	UPROPERTY(EditAnywhere, Category="Steering")
+	float GripFactor = 0.5f;
+		
 	UPROPERTY(EditAnywhere, Category="Suspension")
 	float SpringStrength = 25000.f;
 
@@ -27,6 +36,6 @@ public:
 	UPROPERTY(EditAnywhere, Category="Suspension")
 	float RestDist = 40.f;
 	
-	UPROPERTY(EditAnywhere, Category="Suspension")
+	UPROPERTY(EditAnywhere, Category="Wheel")
 	float WheelRadius = 30.f;
 };

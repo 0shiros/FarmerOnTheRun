@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "VehicleMovement.generated.h"
 
+class UBoxComponent;
+class UVehicleData;
+class USuspensionComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
@@ -22,7 +25,7 @@ protected:
 
 public:
 	
-	void MoveForward(float Value);
-	
-	void MoveRight(float Value);
+	FVector CalculateSteering(const FVector& WheelPosition, const FVector& WheelRightVector, UVehicleData* VehicleData, UBoxComponent* BoxComponent, float DeltaTime);	
+
+	FVector CalculateAcceleration(FVector WheelForwardVector, FVector VehicleVelocity, UVehicleData* VehicleData, FVector VehicleForwardVector, float ForwardInput);
 };

@@ -2,7 +2,9 @@
 
 
 #include "VehicleMovement.h"
-#include "PlayerVehicle.h"
+
+#include "SuspensionComponent.h"
+#include "VehicleData.h"
 
 // Sets default values for this component's properties
 UVehicleMovement::UVehicleMovement()
@@ -21,11 +23,37 @@ void UVehicleMovement::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UVehicleMovement::MoveForward(float Value)
+FVector UVehicleMovement::CalculateSteering(const FVector& WheelPosition, const FVector& WheelRightVector, UVehicleData* VehicleData, UBoxComponent* BoxComponent, float DeltaTime)
 {
+	if (!IsValid(VehicleData) || !IsValid(BoxComponent))
+	{
+		return FVector::ZeroVector;
+	}
+	
+	FVector SteeringDirection = WheelRightVector;
+	FVector TireWorldVelocity = BoxComponent->GetPhysicsLinearVelocityAtPoint(WheelPosition);
+	
+	float SteeringVelocity = FVector::DotProduct(SteeringDirection, TireWorldVelocity);
+	float DesiredVelChange = - SteeringVelocity * VehicleData->GripFactor;
+	
+	FVector ForceToApply = SteeringDirection * DesiredVelChange * BoxComponent->GetMass();
+	
+	return ForceToApply;
 }
 
-void UVehicleMovement::MoveRight(float Value)
+int LastForwardSpeed;
+
+FVector UVehicleMovement::CalculateAcceleration(FVector WheelForwardVector, FVector VehicleVelocity, UVehicleData* VehicleData, FVector VehicleForwardVector, float ForwardInput)
 {
+	if (!IsValid(VehicleData))
+	{
+		return FVector::ZeroVector;
+	} 
+	
+	float CurrentSpeed = FVector::DotProduct(VehicleForwardVector, VehicleVelocity); 
+	float NormalizeSpeed = FMath::Clamp(FMath::Abs(CurrentSpeed) / VehicleData->MaxSpeed, 0.f, 1.f); 
+	float AvailableTorque = VehicleData->AccelerationCurve->GetFloatValue(NormalizeSpeed) * ForwardInput; 
+	FVector ForceToApply = WheelForwardVector * AvailableTorque; 
+	return ForceToApply;
 }
 

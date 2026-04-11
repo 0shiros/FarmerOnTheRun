@@ -50,7 +50,7 @@ void AGamePlayerController::SetupInputComponent()
 
 void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
 {
-	
+	PlayerVehicule->ApplyAcceleration(Value.Get<float>());
 }
 
 void AGamePlayerController::OnReverse(const FInputActionValue& Value)

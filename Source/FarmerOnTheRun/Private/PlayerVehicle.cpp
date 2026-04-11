@@ -6,6 +6,7 @@
 #include "SuspensionComponent.h"
 #include "VehicleMovement.h"
 #include "WheelSetup.h"
+#include "VehicleData.h"
 #include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
@@ -80,78 +81,87 @@ APlayerVehicle::APlayerVehicle()
 void APlayerVehicle::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	PrimaryActorTick.TickGroup = TG_PostPhysics;
 }
 
 void APlayerVehicle::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	
-	PrimaryActorTick.TickGroup = TG_PostPhysics;
+	Super::Tick(DeltaTime);	
 	
 	if (!VehicleData)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("VehicleData is not set!"));
 		return;
-	}
-	
-	FVector CoM = BoxCollider->GetBodyInstance()->GetCOMPosition();
-
-	FVector AvgFront = FVector::ZeroVector;
-	FVector AvgRear = FVector::ZeroVector;
-
-	for (int32 i = 0; i < Wheels.Num(); i++)
-	{
-		if (!IsValid(Wheels[i].SuspensionComponent))
-			continue;
-
-		FVector Loc = Wheels[i].SuspensionComponent->GetComponentLocation();
-
-		if (i < Wheels.Num() / 2)
-			AvgFront += Loc;
-		else
-			AvgRear += Loc;
-	}
-
-	AvgFront /= (Wheels.Num() / 2);
-	AvgRear /= (Wheels.Num() / 2);
-
-	FVector AxleCenter = (AvgFront + AvgRear) / 2.f;
-
-	UE_LOG(LogTemp, Warning, TEXT("CoM World    : %s"), *CoM.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Axle Center  : %s"), *AxleCenter.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("CoM Offset X : %.4f"), CoM.X - AxleCenter.X);
-	UE_LOG(LogTemp, Warning, TEXT("CoM Offset Y : %.4f"), CoM.Y - AxleCenter.Y);
-	UE_LOG(LogTemp, Warning, TEXT("CoM Offset Z : %.4f"), CoM.Z - AxleCenter.Z);
-	UE_LOG(LogTemp, Warning, TEXT("Wheelbase    : %.4f"), FVector::Dist(AvgFront, AvgRear));
+	}	
 	
 	UpdateSuspension();
+	ApplySteeringToWheels(DeltaTime);
 }
 
 void APlayerVehicle::UpdateSuspension()
 {
-	TArray<FVector> Forces;
-	TArray<FVector> Locations;
-
 	for (FWheelSetup& Wheel : Wheels)
 	{
 		if (!IsValid(Wheel.SuspensionComponent))
 			continue;
 
 		FVector WheelLocation = Wheel.SuspensionComponent->GetComponentLocation();
-		FVector WheelUpVector = FVector::UpVector; 
+		FVector WheelUpVector = Wheel.SuspensionComponent->GetUpVector();
 
 		Wheel.SuspensionComponent->PerformSuspensionTrace(VehicleData, WheelLocation, WheelUpVector);
-		Forces.Add(Wheel.SuspensionComponent->CalculateSuspensionForce(BoxCollider, VehicleData, WheelLocation, WheelUpVector));
-		Locations.Add(WheelLocation);
+		FVector Force = Wheel.SuspensionComponent->CalculateSuspensionForce(BoxCollider, VehicleData, WheelLocation, WheelUpVector);
+		BoxCollider->AddForceAtLocation(Force, WheelLocation);
+		DrawDebugLine(GetWorld(), WheelLocation, WheelLocation + Force * 0.01f, FColor::Blue, false, 0.1f);
 	}
+}
 
-	for (int32 i = 0; i < Forces.Num(); i++)
+void APlayerVehicle::ApplySteeringToWheels(float DeltaTime)
+{
+	for (FWheelSetup& Wheel : Wheels)
 	{
-		BoxCollider->AddForceAtLocation(Forces[i], Locations[i]);
-		UE_LOG(LogTemp, Warning, TEXT("Suspension Force: %s at Location: %s"), *Forces[i].ToString(), *Locations[i].ToString());
+		if (!IsValid(Wheel.SuspensionComponent) || !Wheel.SuspensionComponent->GetIsGrounded())
+			continue;
+	
+		FVector WheelLocation = Wheel.SuspensionComponent->GetComponentLocation();
+		FVector WheelRightVector = Wheel.SuspensionComponent->GetRightVector();
+		FVector Force = VehicleMovementComponent->CalculateSteering(WheelLocation, WheelRightVector, VehicleData, BoxCollider, DeltaTime);
+		
+		BoxCollider->AddForceAtLocation(Force, WheelLocation);
+		DrawDebugLine(GetWorld(), WheelLocation, WheelLocation + Force * 0.01f, FColor::Red, false, 0.1f);
+		UE_LOG(LogTemp, Warning, TEXT("Steering Force: %s of Wheel at Location: %s"), *Force.ToString(), *WheelLocation.ToString());
 	}
+}
+
+void APlayerVehicle::ApplyAcceleration(float Value)
+{	
+	if (GetCalculateCarSpeed() > VehicleData->MaxSpeed)
+	{
+		return;
+	}	
 	
-	
+	for (FWheelSetup& Wheel : Wheels)
+	{
+		if (!IsValid(Wheel.SuspensionComponent) || !Wheel.SuspensionComponent->GetIsGrounded())
+		{
+			continue;
+		}
+		
+		FVector AccelDir = Wheel.SuspensionComponent->GetForwardVector(); 
+		FVector VehicleVelocity = BoxCollider->GetComponentVelocity(); 
+		FVector VehicleForwardVector = ArrowComponent->GetForwardVector();
+		
+		FVector Force = VehicleMovementComponent->CalculateAcceleration(AccelDir, VehicleVelocity, VehicleData, VehicleForwardVector, Value * VehicleData->EngineForce); 
+		BoxCollider->AddForceAtLocation(Force, Wheel.SuspensionComponent->GetComponentLocation()); 
+		
+		DrawDebugLine(GetWorld(), Wheel.SuspensionComponent->GetComponentLocation(), Wheel.SuspensionComponent->GetComponentLocation() + Force * 0.01f, FColor::Green, false, 0.1f);
+		//UE_LOG(LogTemp, Warning, TEXT("Acceleration Force: %s of Wheel at Location: %s"), *Force.ToString(), *Wheel.SuspensionComponent->GetComponentLocation().ToString());
+	}
+}
+
+float APlayerVehicle::GetCalculateCarSpeed()
+{
+	return BoxCollider->GetComponentVelocity().Size();
 }
 
 

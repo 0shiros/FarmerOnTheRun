@@ -28,7 +28,7 @@ void USuspensionComponent::PerformSuspensionTrace(const UVehicleData* VehicleDat
 	
 	FVector Start = WheelLocation;
 	FVector End = Start - WheelUpVector * VehicleData->RestDist;
-
+	
 	GetWorld()->LineTraceSingleByChannel(SuspensionHit, Start, End, ECC_Visibility, SuspensionQueryParams);
 	
 	bIsGrounded = SuspensionHit.bBlockingHit;
@@ -36,7 +36,7 @@ void USuspensionComponent::PerformSuspensionTrace(const UVehicleData* VehicleDat
 	DrawDebugLine(GetWorld(), Start, End, SuspensionHit.bBlockingHit ? FColor::Green : FColor::Red, false, 0.1f);
 }
 
-FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxComponent,	const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
+FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
 {		
 	if (!IsValid(BoxComponent) || !IsValid(VehicleData) || !bIsGrounded)
 	{
@@ -44,17 +44,14 @@ FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxCompone
 	}
 	
 	FVector WheelVelocity = BoxComponent->GetPhysicsLinearVelocityAtPoint(WheelLocation);
-	
 	float OffSet = VehicleData->RestDist - SuspensionHit.Distance;
-	UE_LOG(LogTemp, Warning, TEXT("Offset: %f"), OffSet);
 	float Velocity = FVector::DotProduct(WheelUpVector, WheelVelocity);
 	
-	float Force = FMath::Clamp(OffSet * VehicleData->SpringStrength - Velocity * VehicleData->SpringDamping, 0.f, VehicleData->SpringStrength * 50.f);
+	float Force = OffSet * VehicleData->SpringStrength - Velocity * VehicleData->SpringDamping;
 	
 	FVector SuspensionForce = WheelUpVector * Force;
-	
-	return SuspensionForce;
-	
+		
+	return SuspensionForce;	
 }
 
 

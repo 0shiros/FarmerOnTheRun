@@ -77,10 +77,23 @@ public:
 	TObjectPtr<UVehicleData> VehicleData;	
 	
 protected:
+		
+	float ForwardInput = 0.f;
+	
+protected:
 	
 	virtual void BeginPlay() override;
 	
 	virtual void Tick(float DeltaTime) override;
+
+public :
 	
 	void UpdateSuspension();
+	
+	void ApplySteeringToWheels(float DeltaTime);
+	
+	void ApplyAcceleration(float Value);
+	
+	UFUNCTION(BlueprintCallable)
+	float GetCalculateCarSpeed();
 };

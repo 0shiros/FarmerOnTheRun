@@ -23,6 +23,7 @@ protected:
 	FHitResult SuspensionHit;	
 	FCollisionQueryParams SuspensionQueryParams;	
 	
+	UPROPERTY(VisibleAnywhere, Category="Suspension")
 	bool bIsGrounded = false;
 		
 protected:
@@ -34,5 +35,9 @@ public :
 	void PerformSuspensionTrace(const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector);
 	
 	FVector CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector);	
+
+	bool GetIsGrounded() const { return bIsGrounded; }
+	
+	FHitResult GetSuspensionHit() const { return SuspensionHit; }
 };
 
