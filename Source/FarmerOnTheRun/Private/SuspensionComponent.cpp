@@ -37,19 +37,22 @@ void USuspensionComponent::PerformSuspensionTrace(const UVehicleData* VehicleDat
 }
 
 FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
-{		
+{			
+	PerformSuspensionTrace(VehicleData, WheelLocation,  WheelUpVector);
+	
 	if (!IsValid(BoxComponent) || !IsValid(VehicleData) || !bIsGrounded)
 	{
 		return FVector::ZeroVector;
-	}
+	}	
 	
 	FVector WheelVelocity = BoxComponent->GetPhysicsLinearVelocityAtPoint(WheelLocation);
 	float OffSet = VehicleData->RestDist - SuspensionHit.Distance;
-	float Velocity = FVector::DotProduct(WheelUpVector, WheelVelocity);
+	float Velocity = FVector::DotProduct(SuspensionHit.ImpactNormal.GetSafeNormal(), WheelVelocity);
 	
 	float Force = OffSet * VehicleData->SpringStrength - Velocity * VehicleData->SpringDamping;
+	Force = FMath::Clamp(Force, -VehicleData->MaxSuspensionForce, VehicleData->MaxSuspensionForce);
 	
-	FVector SuspensionForce = WheelUpVector * Force;
+	FVector SuspensionForce = SuspensionHit.ImpactNormal.GetSafeNormal() * Force;
 		
 	return SuspensionForce;	
 }

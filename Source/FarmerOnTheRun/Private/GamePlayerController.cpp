@@ -40,27 +40,46 @@ void AGamePlayerController::SetupInputComponent()
 	if (TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
 		// Bind Movement Actions
-		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnAcceleration);
-		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnReverse);
-		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::OnTurnLeftRight);
+		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::AccelerationTriggered);
+		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Completed, this, &AGamePlayerController::AccelerationTriggered);
+		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Triggered, this, &AGamePlayerController::BrakeTriggered);
+		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Completed, this, &AGamePlayerController::BrakeTriggered);
+		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::SteeringTriggered);
+		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Completed, this, &AGamePlayerController::SteeringCompleted);
 		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Started, this, &AGamePlayerController::OnDriftStarted);
 		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Completed, this, &AGamePlayerController::OnDriftCompleted);
 	}
 }
 
-void AGamePlayerController::OnAcceleration(const FInputActionValue& Value)
+void AGamePlayerController::AccelerationTriggered(const FInputActionValue& Value)
 {
-	PlayerVehicule->ApplyAcceleration(Value.Get<float>());
+	PlayerVehicule->VehicleMovementComponent->SetTargetAcceleration(Value.Get<float>());
 }
 
-void AGamePlayerController::OnReverse(const FInputActionValue& Value)
+void AGamePlayerController::AccelerationCompleted(const FInputActionValue& Value)
 {
-	
+	PlayerVehicule->VehicleMovementComponent->SetTargetAcceleration(0.f);
 }
 
-void AGamePlayerController::OnTurnLeftRight(const FInputActionValue& Value)
+
+void AGamePlayerController::BrakeTriggered(const FInputActionValue& Value)
 {
-	
+	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(Value.Get<float>());
+}
+
+void AGamePlayerController::BrakeCompleted(const FInputActionValue& Value)
+{
+	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(0.f);
+}
+
+void AGamePlayerController::SteeringTriggered(const FInputActionValue& Value)
+{
+	PlayerVehicule->VehicleMovementComponent->SetTargetSteering(Value.Get<float>(), true);	
+}
+
+void AGamePlayerController::SteeringCompleted(const FInputActionValue& Value)
+{
+	PlayerVehicule->VehicleMovementComponent->SetTargetSteering(0,false);
 }
 
 void AGamePlayerController::OnDriftStarted(const FInputActionValue& Value)

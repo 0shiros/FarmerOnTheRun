@@ -40,11 +40,17 @@ private:
 public:
 	void Start();
 	
-	void OnAcceleration(const FInputActionValue& Value);	
+	void AccelerationTriggered(const FInputActionValue& Value);	
 	
-	void OnReverse(const FInputActionValue& Value);
+	void AccelerationCompleted(const FInputActionValue& Value);
 	
-	void OnTurnLeftRight(const FInputActionValue& Value);
+	void BrakeTriggered(const FInputActionValue& Value);
+	
+	void BrakeCompleted(const FInputActionValue& Value);
+	
+	void SteeringTriggered(const FInputActionValue& Value);
+	
+	void SteeringCompleted(const FInputActionValue& Value);
 	
 	void OnDriftStarted(const FInputActionValue& Value);
 	

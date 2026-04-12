@@ -18,14 +18,62 @@ class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UVehicleMovement();		
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VehicleOwner")
+	TObjectPtr<class APlayerVehicle> VehicleOwner;
+		
+private : 
+	
+	// Input variables
+	float TargetAcceleration;
+	float TargetSteering;
+	bool bIsSteering;
+	float TargetBrake;	
+	
+	// Calculated variables
+	float Acceleration;
+	float Steering;
+	float NormalizedSpeed;
+	FVector Velocity;
+	FVector LinearVelocity;
+	float CurrentSpeed;
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
 	
-	FVector CalculateSteering(const FVector& WheelPosition, const FVector& WheelRightVector, UVehicleData* VehicleData, UBoxComponent* BoxComponent, float DeltaTime);	
+	void SetVariablesToFrame(float DeltaTime);
+	
+	void CalculateNormalizedSpeed();
+	
+	void ResetSteering();
 
-	FVector CalculateAcceleration(FVector WheelForwardVector, FVector VehicleVelocity, UVehicleData* VehicleData, FVector VehicleForwardVector, float ForwardInput);
+	void UpdateSuspension() const;
+	
+	void ApplyFrictionForce();	
+	
+	void ApplyBrake();
+		
+	void ApplyAcceleration();
+	
+	void Turning();
+		
+	void SetAngularDamping();	
+	
+	void CalculateSteering();	
+	
+	void SetTargetAcceleration(float Value);
+	
+	void SetTargetSteering(float Value, bool bIsSteeringInput);	
+	
+	void SetTargetBrake(float Value);
+	
+	void CustomGravity();
+	
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentSpeed() const { return CurrentSpeed; }
 };
