@@ -30,10 +30,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> TurnLeftRightAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> DriftAction;
-	
+		
 private:
 	virtual void SetupInputComponent() override;
 	
@@ -51,9 +48,4 @@ public:
 	void SteeringTriggered(const FInputActionValue& Value);
 	
 	void SteeringCompleted(const FInputActionValue& Value);
-	
-	void OnDriftStarted(const FInputActionValue& Value);
-	
-	void OnDriftCompleted(const FInputActionValue& Value);
-
 };

@@ -50,8 +50,6 @@ public:
 	
 	void CalculateNormalizedSpeed();
 	
-	void ResetSteering();
-
 	void UpdateSuspension() const;
 	
 	void ApplyFrictionForce();	
@@ -76,4 +74,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentSpeed() const { return CurrentSpeed; }
+	
+	void RollingWheel();
+	
+	void SteeringWheel();
 };

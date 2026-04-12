@@ -29,6 +29,8 @@ struct FWheelSetup
 	TObjectPtr<class USuspensionComponent> SuspensionComponent;	
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> PivotComponent;			
+	TObjectPtr<USceneComponent> PivotComponent;		
+	
+	FVector PreviousPivotWheelLocation;
 };
 

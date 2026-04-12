@@ -46,8 +46,6 @@ void AGamePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Completed, this, &AGamePlayerController::BrakeTriggered);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::SteeringTriggered);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Completed, this, &AGamePlayerController::SteeringCompleted);
-		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Started, this, &AGamePlayerController::OnDriftStarted);
-		EnhancedInputComponent->BindAction(DriftAction, ETriggerEvent::Completed, this, &AGamePlayerController::OnDriftCompleted);
 	}
 }
 
@@ -80,14 +78,4 @@ void AGamePlayerController::SteeringTriggered(const FInputActionValue& Value)
 void AGamePlayerController::SteeringCompleted(const FInputActionValue& Value)
 {
 	PlayerVehicule->VehicleMovementComponent->SetTargetSteering(0,false);
-}
-
-void AGamePlayerController::OnDriftStarted(const FInputActionValue& Value)
-{
-	
-}
-
-void AGamePlayerController::OnDriftCompleted(const FInputActionValue& Value)
-{
-	
 }

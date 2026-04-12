@@ -44,10 +44,12 @@ APlayerVehicle::APlayerVehicle()
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->SetupAttachment(RootComponent);
 	SpringArmComponent->TargetArmLength = 300.f;
-	SpringArmComponent->SetRelativeLocation(FVector(-100.f, 0.f, 110.f));
+	SpringArmComponent->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
+	SpringArmComponent->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
+	CameraComponent->FieldOfView = 110.f;
 
 	Wheels.SetNum(4);
 	

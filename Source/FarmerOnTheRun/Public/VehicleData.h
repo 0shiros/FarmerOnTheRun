@@ -47,7 +47,7 @@ public:
 	TObjectPtr<UCurveFloat> FrictionCurve;
 		
 	UPROPERTY(EditAnywhere, Category="Grip")
-	float GripMultiplier = -1.5f;
+	float GripMultiplier = 1.5f;
 	
 	UPROPERTY(EditAnywhere, Category="Suspension")
 	float SpringStrength = 40000.f;
@@ -78,4 +78,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Wheel")
 	float WheelRadius = 30.f;
+	
+	UPROPERTY(EditAnywhere, Category="Wheel")
+	double MaxSteeringAngle = 35.f;
 };
