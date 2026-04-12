@@ -2,100 +2,63 @@
 
 
 #include "SuspensionComponent.h"
-#include "PlayerVehicle.h"
 #include "CollisionQueryParams.h"
 #include "Components/BoxComponent.h"
+#include "VehicleData.h"
 
 // Sets default values for this component's properties
 USuspensionComponent::USuspensionComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-// Called when the game starts
 void USuspensionComponent::BeginPlay()
 {
-	Super::BeginPlay();	
-	Query = FCollisionQueryParams(FName(TEXT("")), false, GetOwner());
-}
-
-
-// Called every frame
-void USuspensionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	PerformTrace();
-}
-
-void USuspensionComponent::Initialize(float NewRestDist, float NewSpringForce, float NewSpringDamping)
-{
-	SuspensionStats.SpringForce = NewSpringForce;
-	SuspensionStats.SpringDamping = NewSpringDamping;
-	SuspensionStats.RestDist = NewRestDist;
-}
-
-const FHitResult& USuspensionComponent::GetResults() const
-{
-	return OutHit;
-}
-
-void USuspensionComponent::PerformTrace()
-{	
-	const FVector Start = GetComponentLocation();
-	const FVector End = Start - GetUpVector() *  SuspensionStats.RestDist;
-	FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(ECC_WorldStatic | ECC_WorldDynamic);
+	Super::BeginPlay();
 	
-	GetWorld()->LineTraceSingleByObjectType(
-		OutHit, 
-		Start, 
-		End, 
-		ObjectQueryParams, 
-		Query);
-	
-	OnTraceCompleted();
-	
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		Start,
-		Start - GetUpVector() *  SuspensionStats.RestDist * 2.f,
-		10.f,
-		FColor::Yellow,
-		false,
-		-1.f,
-		0,
-		2.f);
-	
+	SuspensionQueryParams = FCollisionQueryParams(TEXT("SuspensionTrace"), false, GetOwner());
 }
 
-
-void USuspensionComponent::OnTraceCompleted()
+void USuspensionComponent::PerformSuspensionTrace(const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
 {
-	if (OutHit.bBlockingHit)
+	if (!IsValid(VehicleData))
 	{
-		SuspensionStats.IsGrounded = true;
+		return;
 	}
-	else
+	
+	FVector Start = WheelLocation;
+	FVector End = Start - WheelUpVector * VehicleData->RestDist;
+	
+	GetWorld()->LineTraceSingleByChannel(SuspensionHit, Start, End, ECC_Visibility, SuspensionQueryParams);
+	
+	bIsGrounded = SuspensionHit.bBlockingHit;
+	
+	DrawDebugLine(GetWorld(), Start, End, SuspensionHit.bBlockingHit ? FColor::Green : FColor::Red, false, 0.1f);
+}
+
+FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
+{			
+	PerformSuspensionTrace(VehicleData, WheelLocation,  WheelUpVector);
+	
+	if (!IsValid(BoxComponent) || !IsValid(VehicleData) || !bIsGrounded)
 	{
-		SuspensionStats.IsGrounded = false;
-	}
+		return FVector::ZeroVector;
+	}	
+	
+	FVector WheelVelocity = BoxComponent->GetPhysicsLinearVelocityAtPoint(WheelLocation);
+	float OffSet = VehicleData->RestDist - SuspensionHit.Distance;
+	float Velocity = FVector::DotProduct(SuspensionHit.ImpactNormal.GetSafeNormal(), WheelVelocity);
+	
+	float Force = OffSet * VehicleData->SpringStrength - Velocity * VehicleData->SpringDamping;
+	Force = FMath::Clamp(Force, -VehicleData->MaxSuspensionForce, VehicleData->MaxSuspensionForce);
+	
+	FVector SuspensionForce = SuspensionHit.ImpactNormal.GetSafeNormal() * Force;
+		
+	return SuspensionForce;	
 }
 
-FVector USuspensionComponent::CalculateSuspension(APlayerVehicle* VehiclePlayer, float OutDistance)
-{	
-	FVector springDir = OutHit.ImpactNormal;
-	FVector tireWorldVel = VehiclePlayer->BoxCollisionComponent->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());
-	float offSet = SuspensionStats.RestDist - OutDistance;
-	float vel = FVector::DotProduct(springDir, tireWorldVel);
-	float force = (offSet * SuspensionStats.SpringForce) - (vel * SuspensionStats.SpringDamping);
-	FVector suspensionForce = springDir * force;
-	return suspensionForce;
-}
 
-bool USuspensionComponent::GetIsGrounded() const
-{
-	return SuspensionStats.IsGrounded;
-}
+	
 
 
 

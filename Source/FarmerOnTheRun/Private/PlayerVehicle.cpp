@@ -2,69 +2,103 @@
 
 
 #include "PlayerVehicle.h"
+
 #include "SuspensionComponent.h"
 #include "VehicleMovement.h"
+#include "WheelSetup.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Components/ArrowComponent.h"
 
 // Sets default values
 APlayerVehicle::APlayerVehicle()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;	
-	
-	BoxCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollisionComponent"));
-	RootComponent = BoxCollisionComponent;
-	
-	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-	SkeletalMeshComponent->SetupAttachment(BoxCollisionComponent);
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = false;
+
+	BoxCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
+	RootComponent = BoxCollider;
+
+	BoxCollider->SetSimulatePhysics(true);
+	BoxCollider->SetMassOverrideInKg(NAME_None, 1200.f);
+	BoxCollider->BodyInstance.bUseCCD = true;
+	BoxCollider->SetEnableGravity(false);
+	BoxCollider->SetCollisionProfileName(TEXT("Vehicle"));
+	BoxCollider->SetLinearDamping(0.f);
+	BoxCollider->SetAngularDamping(0.f);
+	BoxCollider->SetCenterOfMass(FVector(7.1283f, 0.f, -50.f));
+	BoxCollider->SetBoxExtent(FVector(106.f, 54.f, 32.f));
 	
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
-	ArrowComponent->SetupAttachment(BoxCollisionComponent);
+	ArrowComponent->SetupAttachment(RootComponent);
+	ArrowComponent->ArrowLength = 200.f;	
+
+	CarBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+	CarBody->SetupAttachment(RootComponent);
+	CarBody->SetCollisionProfileName(TEXT("NoCollision"));
+	CarBody->SetComponentTickEnabled(false);
+	CarBody->SetRelativeLocation(FVector(-15.f, 0.f, -57.f));
+	CarBody->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
 	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArmComponent->SetupAttachment(BoxCollisionComponent);
-	
+	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->TargetArmLength = 300.f;
+	SpringArmComponent->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
+	SpringArmComponent->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	CameraComponent->SetupAttachment(SpringArmComponent);		
+	CameraComponent->SetupAttachment(SpringArmComponent);
+	CameraComponent->FieldOfView = 110.f;
+
+	Wheels.SetNum(4);
 	
-	SkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	
-	TObjectPtr<USuspensionComponent> FrontLeftWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("FrontLeftWheel"));
-	FrontLeftWheel->SetupAttachment(BoxCollisionComponent);
-	Wheels.Add(FrontLeftWheel);
-	
-	TObjectPtr<USuspensionComponent> FrontRightWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("FrontRightWheel"));
-	FrontRightWheel->SetupAttachment(BoxCollisionComponent);
-	Wheels.Add(FrontRightWheel);
-	
-	TObjectPtr<USuspensionComponent> RearLeftWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("RearLeftWheel"));
-	RearLeftWheel->SetupAttachment(BoxCollisionComponent);
-	Wheels.Add(RearLeftWheel);
-	
-	TObjectPtr<USuspensionComponent> RearRightWheel = CreateDefaultSubobject<USuspensionComponent>(TEXT("RearRightWheel"));
-	RearRightWheel->SetupAttachment(BoxCollisionComponent);
-	Wheels.Add(RearRightWheel);    
-	
-	VehicleMovementComponent = CreateDefaultSubobject<UVehicleMovement>(TEXT("VehicleMovementComponent"));
-	
-	BoxCollisionComponent->SetSimulatePhysics(true);
-	BoxCollisionComponent->SetLinearDamping(0.15f);   
-	BoxCollisionComponent->SetAngularDamping(5.f);    
-	BoxCollisionComponent->SetCenterOfMass(FVector(0.f, 0.f, -30.f));
+	auto SetupWheel = [this](EWheelPosition Position,
+					  TObjectPtr<USuspensionComponent>& SuspensionComponent,
+					  TObjectPtr<UStaticMeshComponent>& WheelMeshComponent,
+					  TObjectPtr<USceneComponent>& PivotComponent,
+					  const TCHAR* SuspensionName)
+	{
+		FWheelSetup& Wheel = Wheels[static_cast<uint8>(Position)];
+		
+		Wheel.WheelPosition = Position;
+
+		SuspensionComponent = CreateDefaultSubobject<USuspensionComponent>(SuspensionName);
+		SuspensionComponent->SetupAttachment(RootComponent);
+		Wheel.SuspensionComponent = SuspensionComponent;
+
+		const FName PivotName = *FString::Printf(TEXT("Pivot_%s"), SuspensionName);
+		PivotComponent = CreateDefaultSubobject<USceneComponent>(PivotName);
+		PivotComponent->SetupAttachment(SuspensionComponent);
+		Wheel.PivotComponent = PivotComponent;
+
+		const FName MeshName = *FString::Printf(TEXT("WheelMesh_%s"), SuspensionName);
+		WheelMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(MeshName);
+		WheelMeshComponent->SetupAttachment(PivotComponent);
+		WheelMeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
+		WheelMeshComponent->SetComponentTickEnabled(false);
+		Wheel.WheelMesh = WheelMeshComponent;		
+	};
+
+	SetupWheel(EWheelPosition::FrontLeft,  Suspension_FL, WheelMesh_FL, Pivot_FL, TEXT("Suspension_FL"));
+	Suspension_FL->SetRelativeLocation(FVector(70.f, -47.f, -32.f));
+	WheelMesh_FL->SetRelativeLocation(FVector(-85.f, 46.f, -23.f));
+	WheelMesh_FL->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+	SetupWheel(EWheelPosition::FrontRight, Suspension_FR, WheelMesh_FR, Pivot_FR, TEXT("Suspension_FR"));
+	Suspension_FR->SetRelativeLocation(FVector(70.f, 47.f, -32.f));
+	WheelMesh_FR->SetRelativeLocation(FVector(-85.f, -46.f, -23.f));
+	WheelMesh_FR->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+	SetupWheel(EWheelPosition::RearLeft,   Suspension_RL, WheelMesh_RL, Pivot_RL, TEXT("Suspension_RL"));
+	Suspension_RL->SetRelativeLocation(FVector(-60.f, -47.f, -32.f));
+	WheelMesh_RL->SetRelativeLocation(FVector(45.f, 46.f, -23.f));
+	WheelMesh_RL->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+	SetupWheel(EWheelPosition::RearRight,  Suspension_RR, WheelMesh_RR, Pivot_RR, TEXT("Suspension_RR"));
+	Suspension_RR->SetRelativeLocation(FVector(-60.f, 47.f, -32.f));
+	WheelMesh_RR->SetRelativeLocation(FVector(45.f, -46.f, -23.f));
+	WheelMesh_RR->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+
+	VehicleMovementComponent = CreateDefaultSubobject<UVehicleMovement>(TEXT("VehicleMovementComponent"));	
 }
 
-// Called when the game starts or when spawned
-void APlayerVehicle::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	for (TObjectPtr Wheel : Wheels)
-	{
-		Wheel->Initialize(VehicleStats.SuspensionRestDistance, VehicleStats.SuspensionSpringForce, VehicleStats.SuspensionSpringDamping);
-	}
-}
 
 

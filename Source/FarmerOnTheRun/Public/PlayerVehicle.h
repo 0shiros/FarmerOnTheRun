@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "VehicleStats.h"
+#include "SuspensionComponent.h"
 #include "GameFramework/Pawn.h"
 #include "PlayerVehicle.generated.h"
 
@@ -13,7 +13,7 @@ class FARMERONTHERUN_API APlayerVehicle : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
+	
 	APlayerVehicle();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -22,31 +22,57 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<class USpringArmComponent> SpringArmComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BoxCollision")
-	TObjectPtr<class UBoxComponent> BoxCollisionComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkeletalMesh")
-	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArrowComponent")
+	TObjectPtr<class UArrowComponent> ArrowComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Arrow")
-	TObjectPtr<class UArrowComponent> ArrowComponent;		
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BoxCollider")
+	TObjectPtr<UBoxComponent> BoxCollider;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wheels")
-	TArray<TObjectPtr<class USuspensionComponent>> Wheels;
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TObjectPtr<UStaticMeshComponent> CarBody;	
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	TObjectPtr<class UVehicleMovement> VehicleMovementComponent;
 	
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	FVehicleStats VehicleStats;
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Suspension")
+	TObjectPtr<USuspensionComponent> Suspension_FL;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Suspension")
+	TObjectPtr<USuspensionComponent> Suspension_FR;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Suspension")
+	TObjectPtr<USuspensionComponent> Suspension_RL;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Suspension")
+	TObjectPtr<USuspensionComponent> Suspension_RR;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Pivot")
+	TObjectPtr<USceneComponent> Pivot_FL;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Pivot")
+	TObjectPtr<USceneComponent> Pivot_FR;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Pivot")
+	TObjectPtr<USceneComponent> Pivot_RL;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Pivot")
+	TObjectPtr<USceneComponent> Pivot_RR;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Mesh")
+	TObjectPtr<UStaticMeshComponent> WheelMesh_FL;
 	
-public :
-	FVehicleStats GetVehicleStats() const { return VehicleStats; }
-	void SetDrifting(bool bIsDrifting) { VehicleStats.IsDrifting = bIsDrifting; }
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Mesh")
+	TObjectPtr<UStaticMeshComponent> WheelMesh_FR;
 	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Mesh")
+	TObjectPtr<UStaticMeshComponent> WheelMesh_RL;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Wheels|Mesh")
+	TObjectPtr<UStaticMeshComponent> WheelMesh_RR;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wheels")
+	TArray<struct FWheelSetup> Wheels;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
+	TObjectPtr<UVehicleData> VehicleData;						
 };
