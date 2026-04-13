@@ -21,6 +21,9 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VehicleOwner")
 	TObjectPtr<class APlayerVehicle> VehicleOwner;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VehicleOwner")
+	bool bIsBraking;
 		
 private : 
 	
@@ -29,6 +32,7 @@ private :
 	float TargetSteering;
 	bool bIsSteering;
 	float TargetBrake;	
+	
 	
 	// Calculated variables
 	float Acceleration;
@@ -62,13 +66,13 @@ public:
 		
 	void SetAngularDamping();	
 	
-	void CalculateSteering();	
+	void CalculateSteering(float DelaTime);	
 	
 	void SetTargetAcceleration(float Value);
 	
 	void SetTargetSteering(float Value, bool bIsSteeringInput);	
 	
-	void SetTargetBrake(float Value);
+	void SetTargetBrake(float Value, bool bIsBrakingInput);
 	
 	void CustomGravity();
 	
@@ -78,4 +82,6 @@ public:
 	void RollingWheel();
 	
 	void SteeringWheel();
+	
+	void AddSkidMark(bool bActivate);
 };

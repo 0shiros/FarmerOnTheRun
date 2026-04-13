@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "VehicleMovement.h"
+
+#include "NiagaraComponent.h"
 #include "PlayerVehicle.h"
 #include "SuspensionComponent.h"
 #include "VehicleData.h"
@@ -16,7 +18,6 @@ void UVehicleMovement::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PrimaryComponentTick.TickGroup = TG_PostPhysics;
 	VehicleOwner = Cast<APlayerVehicle>(GetOwner());
 
 	if (!IsValid(VehicleOwner))
@@ -46,11 +47,12 @@ void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorC
 	ApplyAcceleration();
 }
 
+#pragma region CalculateVariables
 void UVehicleMovement::SetVariablesToFrame(float DeltaTime)
 {
 	CurrentSpeed = FMath::Abs(Velocity.Size());
 	CalculateNormalizedSpeed();
-	CalculateSteering();
+	CalculateSteering(DeltaTime);
 	LinearVelocity = VehicleOwner->BoxCollider->GetPhysicsLinearVelocity();
 	Velocity = VehicleOwner->BoxCollider->GetComponentVelocity();
 	Acceleration = FMath::Lerp(Acceleration, TargetAcceleration, DeltaTime * VehicleOwner->VehicleData->AccelerationSpeed);
@@ -66,6 +68,20 @@ void UVehicleMovement::CalculateNormalizedSpeed()
 	NormalizedSpeed = FMath::Clamp(FMath::Abs(CarSpeed) / VehicleOwner->VehicleData->MaxSpeed, 0.f,1.f);
 }
 
+void UVehicleMovement::CalculateSteering(float DelaTime)
+{
+	float SteeringSpeed = VehicleOwner->VehicleData->SteeringSpeed;
+	
+	if (!bIsSteering)
+	{
+		SteeringSpeed *= 2.f;
+	}
+
+	Steering = FMath::FInterpTo(Steering, TargetSteering, DelaTime, SteeringSpeed);
+}
+#pragma endregion
+
+#pragma region ApplyVariousForces
 void UVehicleMovement::UpdateSuspension() const
 {
 	for (FWheelSetup& Wheel : VehicleOwner->Wheels)
@@ -83,37 +99,6 @@ void UVehicleMovement::UpdateSuspension() const
 		const FVector SuspensionForce = Suspension->CalculateSuspensionForce(VehicleOwner->BoxCollider,VehicleOwner->VehicleData, WheelLocation, WheelUpVector);
 		VehicleOwner->BoxCollider->AddForceAtLocation(SuspensionForce, WheelLocation);
 		DrawDebugDirectionalArrow(GetWorld(), WheelLocation, WheelLocation + SuspensionForce * 0.01f, 10.f, FColor::Cyan, false, 0.1f);
-	}
-}
-
-void UVehicleMovement::CalculateSteering()
-{
-	float SteeringSpeed = VehicleOwner->VehicleData->SteeringSpeed;
-	
-	if (!bIsSteering)
-	{
-		SteeringSpeed *= 2.f;
-	}
-
-	Steering = FMath::FInterpTo(Steering, TargetSteering, GetWorld()->GetDeltaSeconds(), SteeringSpeed);
-}
-
-void UVehicleMovement::Turning()
-{
-	if (!IsValid(VehicleOwner->VehicleData->TurnCurve))
-	{
-		return;
-	}
-	
-	if (VehicleOwner->Suspension_FL->GetIsGrounded())
-	{
-		const float TurnTorque = VehicleOwner->VehicleData->TurnCurve->GetFloatValue(NormalizedSpeed) * Steering * VehicleOwner->VehicleData->SteeringTorque;
-			
-		const FVector TurnForce = FVector(0.f, 0.f, TurnTorque * TargetAcceleration);
-
-		VehicleOwner->BoxCollider->AddTorqueInDegrees(TurnForce, NAME_None, true);
-		
-		DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + TurnForce * 0.01f, 10.f, FColor::Yellow, false, 0.1f);
 	}
 }
 
@@ -145,20 +130,33 @@ void UVehicleMovement::SetAngularDamping()
 		return;
 	}
 	
-	const float SpinFactor = (Acceleration > 0.8f && NormalizedSpeed < 0.3f) ? 0.2f : 1.f;	
-	const float CurveDamping = VehicleOwner->VehicleData->AngularDampingCurve->GetFloatValue(NormalizedSpeed);
-	const float NewDamping = CurveDamping * SpinFactor;
-	const float Damping = VehicleOwner->Suspension_RR->GetIsGrounded() ? NewDamping : 0.05f;
+	float NewDamping = TargetBrake < 0.f ? 5.f : 20.f;	
+	VehicleOwner->BoxCollider->SetAngularDamping(NewDamping);	
+}
+#pragma endregion
+
+#pragma region ApplyInputForces
+void UVehicleMovement::Turning()
+{
+	if (!IsValid(VehicleOwner->VehicleData->TurnCurve))
+	{
+		return;
+	}
 	
-	VehicleOwner->BoxCollider->SetAngularDamping(Damping);
-	DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + VehicleOwner->BoxCollider->GetPhysicsAngularVelocityInDegrees() * 0.01f, 10.f, FColor::Purple, false, 0.1f);
+	if (VehicleOwner->Suspension_FL->GetIsGrounded())
+	{
+		const float TurnForce = VehicleOwner->VehicleData->TurnCurve->GetFloatValue(NormalizedSpeed) * Steering * VehicleOwner->VehicleData->SteeringTorque;
+		VehicleOwner->BoxCollider->AddTorqueInRadians(FVector::UpVector * TurnForce, NAME_None, true);
+		
+		DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + TurnForce * TargetAcceleration, 10.f, FColor::Yellow, false, 0.1f);
+	}
 }
 
 void UVehicleMovement::ApplyBrake()
-{	
+{		
 	for (FWheelSetup& Wheel : VehicleOwner->Wheels)
 	{
-		if (!Wheel.SuspensionComponent || !Wheel.SuspensionComponent->GetIsGrounded())
+		if (!Wheel.SuspensionComponent || !Wheel.SuspensionComponent->GetIsGrounded() || Steering != 0.f)
 		{
 			continue;
 		}
@@ -172,9 +170,7 @@ void UVehicleMovement::ApplyBrake()
 		
 		FVector NormalizedLinearVelocity = LinearVelocity.GetSafeNormal();
 		FVector Force = Multiplier * TargetBrake * NormalizedLinearVelocity * VehicleOwner->VehicleData->EngineBrakeForce;
-		
-		UE_LOG(LogTemp, Warning, TEXT("Brake Force: %s "), *Force.ToString());
-		
+				
 		VehicleOwner->BoxCollider->AddForceAtLocation(Force, Wheel.SuspensionComponent->GetComponentLocation());
 		DrawDebugDirectionalArrow(GetWorld(), Wheel.SuspensionComponent->GetComponentLocation(), Wheel.SuspensionComponent->GetComponentLocation() + Force * 0.01f, 10.f, FColor::Magenta, false, 0.1f);
 	}
@@ -191,7 +187,8 @@ void UVehicleMovement::ApplyAcceleration()
 	{
 		USuspensionComponent* Suspension = Wheel.SuspensionComponent;
 		
-		if (!IsValid(Suspension) || !Suspension->GetIsGrounded() || !IsValid(VehicleOwner->VehicleData->AccelerationCurve) || Wheel.WheelPosition == EWheelPosition::FrontLeft || Wheel.WheelPosition == EWheelPosition::FrontRight)
+		if (!IsValid(Suspension) || !Suspension->GetIsGrounded() || !IsValid(VehicleOwner->VehicleData->AccelerationCurve) 
+			|| Wheel.WheelPosition == EWheelPosition::FrontLeft || Wheel.WheelPosition == EWheelPosition::FrontRight)
 		{
 			continue;
 		}
@@ -200,14 +197,15 @@ void UVehicleMovement::ApplyAcceleration()
 		const float AvailableTorque = VehicleOwner->VehicleData->AccelerationCurve->GetFloatValue(NormalizedSpeed);
 		
 		const FVector AccelForce = WheelForward * AvailableTorque * Acceleration * VehicleOwner->VehicleData->EngineForce;	
-		//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, FString::Printf(TEXT("AccelForce: %s | AvailableTorque: %f | Acceleration: %f | EngineForce: %f"), *AccelForce.ToString(), AvailableTorque, Acceleration, VehicleOwner->VehicleData->EngineForce));
 		const FVector WheelLocation = Suspension->GetComponentLocation();
 		
 		VehicleOwner->BoxCollider->AddForceAtLocation(AccelForce, WheelLocation);
 		DrawDebugDirectionalArrow(GetWorld(), WheelLocation, WheelLocation + AccelForce * 0.01f, 10.f, FColor::Green, false, 0.1f);
 	}
 }
+#pragma endregion
 
+#pragma region InputSetters
 void UVehicleMovement::SetTargetAcceleration(float Value)
 {
 	TargetAcceleration = Value;
@@ -219,11 +217,15 @@ void UVehicleMovement::SetTargetSteering(float Value, bool bIsSteeringInput)
 	TargetSteering = Value;
 }
 
-void UVehicleMovement::SetTargetBrake(float Value)
+void UVehicleMovement::SetTargetBrake(float Value, bool bIsBrakingInput)
 {
 	TargetBrake = Value;
+	bIsBraking = bIsBrakingInput;
+	AddSkidMark(bIsBraking);
 }
+#pragma endregion
 
+#pragma region Gravity
 void UVehicleMovement::CustomGravity()
 {
 	const FVector GravityForce = FVector::DownVector * 981.f * VehicleOwner->BoxCollider->GetMass() * VehicleOwner->VehicleData->GravityScale;
@@ -231,7 +233,10 @@ void UVehicleMovement::CustomGravity()
 	VehicleOwner->BoxCollider->AddForce(GravityForce);
 	DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + GravityForce * 0.01f, 10.f, FColor::Blue, false, 0.1f);
 }
+#pragma endregion
 
+
+#pragma region WheelAnimation
 void UVehicleMovement::RollingWheel()
 {
 	for (FWheelSetup& Wheel : VehicleOwner->Wheels)
@@ -259,9 +264,17 @@ void UVehicleMovement::SteeringWheel()
 			continue;
 		}
 		
-		GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Yellow, FString::Printf(TEXT("Steering: %f"), Steering));
 		const FRotator TargetRotation = FRotator(0.f,  Steering * VehicleOwner->VehicleData->MaxSteeringAngle, 0.f);
-		GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Yellow, FString::Printf(TEXT("TargetRotation: %s"), *TargetRotation.ToString()));
 		Wheel.SuspensionComponent->SetRelativeRotation(TargetRotation);
 	}
 }
+#pragma endregion
+
+#pragma region SkidMarks
+void UVehicleMovement::AddSkidMark(bool bActivate)
+{
+	bActivate ? VehicleOwner->SkidMarkLeftEffect->Activate() :	VehicleOwner->SkidMarkRightEffect->Deactivate();
+	bActivate ? VehicleOwner->SkidMarkRightEffect->Activate() : VehicleOwner->SkidMarkLeftEffect->Deactivate();
+}
+
+#pragma endregion

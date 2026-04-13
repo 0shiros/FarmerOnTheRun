@@ -3,6 +3,7 @@
 
 #include "PlayerVehicle.h"
 
+#include "NiagaraComponent.h"
 #include "SuspensionComponent.h"
 #include "VehicleMovement.h"
 #include "WheelSetup.h"
@@ -50,6 +51,12 @@ APlayerVehicle::APlayerVehicle()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->FieldOfView = 110.f;
+	
+	SkidMarkLeftEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkLeftEffect"));
+	SkidMarkLeftEffect->SetupAttachment(RootComponent);
+	
+	SkidMarkRightEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkRightEffect"));
+	SkidMarkRightEffect->SetupAttachment(RootComponent);
 
 	Wheels.SetNum(4);
 	

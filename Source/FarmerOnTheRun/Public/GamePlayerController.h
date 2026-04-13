@@ -26,7 +26,7 @@ protected:
 	TObjectPtr<UInputAction> AccelerationAction;
 		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	TObjectPtr<UInputAction> ReverseAction;
+	TObjectPtr<UInputAction> BrakeAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> TurnLeftRightAction;

@@ -7,6 +7,8 @@
 #include "GameFramework/Pawn.h"
 #include "PlayerVehicle.generated.h"
 
+class UNiagaraComponent;
+
 UCLASS(Abstract)
 class FARMERONTHERUN_API APlayerVehicle : public APawn
 {
@@ -72,6 +74,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wheels")
 	TArray<struct FWheelSetup> Wheels;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkidMark")
+	TObjectPtr<UNiagaraComponent> SkidMarkRightEffect;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkidMark")
+	TObjectPtr<UNiagaraComponent> SkidMarkLeftEffect;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
 	TObjectPtr<UVehicleData> VehicleData;						

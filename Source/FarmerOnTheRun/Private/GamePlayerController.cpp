@@ -41,9 +41,9 @@ void AGamePlayerController::SetupInputComponent()
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Triggered, this, &AGamePlayerController::AccelerationTriggered);
-		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Completed, this, &AGamePlayerController::AccelerationTriggered);
-		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Triggered, this, &AGamePlayerController::BrakeTriggered);
-		EnhancedInputComponent->BindAction(ReverseAction, ETriggerEvent::Completed, this, &AGamePlayerController::BrakeTriggered);
+		EnhancedInputComponent->BindAction(AccelerationAction, ETriggerEvent::Completed, this, &AGamePlayerController::AccelerationCompleted);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Started, this, &AGamePlayerController::BrakeTriggered);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Completed, this, &AGamePlayerController::BrakeCompleted);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::SteeringTriggered);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Completed, this, &AGamePlayerController::SteeringCompleted);
 	}
@@ -62,12 +62,12 @@ void AGamePlayerController::AccelerationCompleted(const FInputActionValue& Value
 
 void AGamePlayerController::BrakeTriggered(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(Value.Get<float>());
+	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(Value.Get<float>(), true);
 }
 
 void AGamePlayerController::BrakeCompleted(const FInputActionValue& Value)
 {
-	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(0.f);
+	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(0.f, false);
 }
 
 void AGamePlayerController::SteeringTriggered(const FInputActionValue& Value)
