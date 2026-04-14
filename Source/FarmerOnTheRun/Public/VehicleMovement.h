@@ -84,4 +84,8 @@ public:
 	void SteeringWheel();
 	
 	void AddSkidMark(bool bActivate);
+	
+	void SoundMotorPitch();
+	
+	void BrakeLights(bool bActivate);
 };

@@ -8,6 +8,8 @@
 #include "VehicleData.h"
 #include "WheelSetup.h"
 #include "Components/ArrowComponent.h"
+#include "Components/AudioComponent.h"
+#include "Components/PointLightComponent.h"
 
 UVehicleMovement::UVehicleMovement()
 {
@@ -45,6 +47,7 @@ void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorC
 	SetAngularDamping();
 	ApplyBrake();
 	ApplyAcceleration();
+	SoundMotorPitch();
 }
 
 #pragma region CalculateVariables
@@ -130,7 +133,7 @@ void UVehicleMovement::SetAngularDamping()
 		return;
 	}
 	
-	float NewDamping = TargetBrake < 0.f ? 5.f : 20.f;	
+	float NewDamping = TargetBrake < 0.f ? 20.f : 80.f;	
 	VehicleOwner->BoxCollider->SetAngularDamping(NewDamping);	
 }
 #pragma endregion
@@ -222,6 +225,7 @@ void UVehicleMovement::SetTargetBrake(float Value, bool bIsBrakingInput)
 	TargetBrake = Value;
 	bIsBraking = bIsBrakingInput;
 	AddSkidMark(bIsBraking);
+	BrakeLights(bIsBrakingInput);
 }
 #pragma endregion
 
@@ -273,8 +277,35 @@ void UVehicleMovement::SteeringWheel()
 #pragma region SkidMarks
 void UVehicleMovement::AddSkidMark(bool bActivate)
 {
-	bActivate ? VehicleOwner->SkidMarkLeftEffect->Activate() :	VehicleOwner->SkidMarkRightEffect->Deactivate();
-	bActivate ? VehicleOwner->SkidMarkRightEffect->Activate() : VehicleOwner->SkidMarkLeftEffect->Deactivate();
+	for (TObjectPtr SkidMarkEffect : VehicleOwner->SkidMarkEffects)
+	{
+		if (IsValid(SkidMarkEffect))
+		{
+			bActivate ? SkidMarkEffect->Activate() : SkidMarkEffect->Deactivate();
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Sound
+void UVehicleMovement::SoundMotorPitch()
+{
+	VehicleOwner->EngineSoundEffect->SetPitchMultiplier(1.f + 2.f * NormalizedSpeed);
 }
 
 #pragma endregion
+
+#pragma region Light
+void UVehicleMovement::BrakeLights(bool bActivate)
+{
+	for (TObjectPtr RearLight : VehicleOwner->RearLights)
+	{
+		if (IsValid(RearLight))
+		{
+			RearLight->SetVisibility(bActivate);
+		}
+	}
+	
+}
+#pragma endregion
+

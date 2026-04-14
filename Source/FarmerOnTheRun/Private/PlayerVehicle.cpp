@@ -9,7 +9,9 @@
 #include "WheelSetup.h"
 #include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/PointLightComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
@@ -52,11 +54,25 @@ APlayerVehicle::APlayerVehicle()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->FieldOfView = 110.f;
 	
-	SkidMarkLeftEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkLeftEffect"));
+	TObjectPtr<UNiagaraComponent> SkidMarkLeftEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkLeftEffect"));
 	SkidMarkLeftEffect->SetupAttachment(RootComponent);
+	SkidMarkEffects.Add(SkidMarkLeftEffect);
 	
-	SkidMarkRightEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkRightEffect"));
+	TObjectPtr<UNiagaraComponent> SkidMarkRightEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SkidMarkRightEffect"));
 	SkidMarkRightEffect->SetupAttachment(RootComponent);
+	SkidMarkEffects.Add(SkidMarkRightEffect);
+	
+	EngineSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSoundEffect"));
+	EngineSoundEffect->SetupAttachment(RootComponent);
+	
+	TObjectPtr<UPointLightComponent> EngineLightRightEffect = CreateDefaultSubobject<UPointLightComponent>(TEXT("EngineLightRightEffect"));
+	EngineLightRightEffect->SetupAttachment(RootComponent);
+	RearLights.Add(EngineLightRightEffect);
+	
+	TObjectPtr<UPointLightComponent> EngineLightLeftEffect = CreateDefaultSubobject<UPointLightComponent>(TEXT("EngineLightLeftEffect"));
+	EngineLightLeftEffect->SetupAttachment(RootComponent);
+	RearLights.Add(EngineLightLeftEffect);
+	
 
 	Wheels.SetNum(4);
 	

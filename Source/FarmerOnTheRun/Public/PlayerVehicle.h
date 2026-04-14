@@ -76,10 +76,13 @@ public:
 	TArray<struct FWheelSetup> Wheels;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkidMark")
-	TObjectPtr<UNiagaraComponent> SkidMarkRightEffect;
+	TArray<TObjectPtr<UNiagaraComponent>> SkidMarkEffects;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	TObjectPtr<UAudioComponent> EngineSoundEffect;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkidMark")
-	TObjectPtr<UNiagaraComponent> SkidMarkLeftEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RearLight")
+	TArray<TObjectPtr<class UPointLightComponent>> RearLights;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
 	TObjectPtr<UVehicleData> VehicleData;						
