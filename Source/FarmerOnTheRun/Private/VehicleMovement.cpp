@@ -54,6 +54,7 @@ void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorC
 void UVehicleMovement::SetVariablesToFrame(float DeltaTime)
 {
 	CurrentSpeed = FMath::Abs(Velocity.Size());
+	OnSpeedUpdate.Broadcast(CurrentSpeed);
 	CalculateNormalizedSpeed();
 	CalculateSteering(DeltaTime);
 	LinearVelocity = VehicleOwner->BoxCollider->GetPhysicsLinearVelocity();
@@ -133,7 +134,7 @@ void UVehicleMovement::SetAngularDamping()
 		return;
 	}
 	
-	float NewDamping = TargetBrake < 0.f ? 20.f : 80.f;	
+	float NewDamping = TargetBrake < 0.f ? 20.f : 50.f;	
 	VehicleOwner->BoxCollider->SetAngularDamping(NewDamping);	
 }
 #pragma endregion
@@ -148,10 +149,11 @@ void UVehicleMovement::Turning()
 	
 	if (VehicleOwner->Suspension_FL->GetIsGrounded())
 	{
-		const float TurnForce = VehicleOwner->VehicleData->TurnCurve->GetFloatValue(NormalizedSpeed) * Steering * VehicleOwner->VehicleData->SteeringTorque;
+		const float Dir = TargetAcceleration >= 0.f ? 1.f : -1.f;
+		const float TurnForce = VehicleOwner->VehicleData->TurnCurve->GetFloatValue(NormalizedSpeed) * Steering * VehicleOwner->VehicleData->SteeringTorque * Dir;
 		VehicleOwner->BoxCollider->AddTorqueInRadians(FVector::UpVector * TurnForce, NAME_None, true);
 		
-		DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + TurnForce * TargetAcceleration, 10.f, FColor::Yellow, false, 0.1f);
+		DrawDebugDirectionalArrow(GetWorld(), VehicleOwner->GetActorLocation(), VehicleOwner->GetActorLocation() + TurnForce, 10.f, FColor::Yellow, false, 0.1f);
 	}
 }
 

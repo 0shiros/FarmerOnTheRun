@@ -85,5 +85,13 @@ public:
 	TArray<TObjectPtr<class UPointLightComponent>> RearLights;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle")
-	TObjectPtr<UVehicleData> VehicleData;						
+	TObjectPtr<UVehicleData> VehicleData;		
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Goal")
+	TObjectPtr<class ACheckGoal> CheckGoal;
+	
+protected:
+	virtual void BeginPlay() override;
+	
+	void DetachFromComponent();
 };

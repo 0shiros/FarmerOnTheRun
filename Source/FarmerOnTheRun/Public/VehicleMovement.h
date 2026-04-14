@@ -10,6 +10,8 @@ class UBoxComponent;
 class UVehicleData;
 class USuspensionComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpeedUpdate, float, CurrentSpeed);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
 {
@@ -26,6 +28,9 @@ public:
 	bool bIsBraking;
 		
 private : 
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Speed")
+	FOnSpeedUpdate OnSpeedUpdate;
 	
 	// Input variables
 	float TargetAcceleration;

@@ -3,6 +3,7 @@
 
 #include "PlayerVehicle.h"
 
+#include "CheckGoal.h"
 #include "NiagaraComponent.h"
 #include "SuspensionComponent.h"
 #include "VehicleMovement.h"
@@ -13,6 +14,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APlayerVehicle::APlayerVehicle()
@@ -121,6 +123,23 @@ APlayerVehicle::APlayerVehicle()
 	WheelMesh_RR->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
 
 	VehicleMovementComponent = CreateDefaultSubobject<UVehicleMovement>(TEXT("VehicleMovementComponent"));	
+}
+
+void APlayerVehicle::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
+	
+	if (CheckGoal)
+	{
+		CheckGoal->OnGoalReached.BindUObject(this, &APlayerVehicle::DetachFromComponent);
+	}
+}
+
+void APlayerVehicle::DetachFromComponent()
+{
+	SpringArmComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 
 

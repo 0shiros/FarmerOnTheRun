@@ -22,7 +22,7 @@ void AGamePlayerController::Start()
 	// Add the input mapping context to the local player subsystem
 	if (TObjectPtr<ULocalPlayer> LocalPlayer = GetLocalPlayer())
 	{
-		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem =	LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
 			Subsystem->AddMappingContext(CharacterIMC, 0);
 		}
