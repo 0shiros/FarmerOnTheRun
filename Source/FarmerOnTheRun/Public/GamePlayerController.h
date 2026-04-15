@@ -9,6 +9,8 @@
 struct FInputActionValue;
 class UInputAction;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPause);
+
 UCLASS(Abstract)
 class FARMERONTHERUN_API AGamePlayerController : public APlayerController
 {
@@ -31,11 +33,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> TurnLeftRightAction;
 		
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> PauseAction;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Pause")
+	FOnPause OnPauseDelegate;
+	
 private:
+	
+	virtual void BeginPlay() override;
+	
 	virtual void SetupInputComponent() override;
 	
 public:
-	virtual void BeginPlay() override;
 	
 	void AccelerationTriggered(const FInputActionValue& Value);	
 	
@@ -48,4 +58,6 @@ public:
 	void SteeringTriggered(const FInputActionValue& Value);
 	
 	void SteeringCompleted(const FInputActionValue& Value);
+	
+	void PauseTriggered(const FInputActionValue& Value);
 };

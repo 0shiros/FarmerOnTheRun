@@ -8,7 +8,7 @@
 
 DECLARE_DELEGATE(FOnStartReached);
 
-UCLASS(Blueprintable)
+UCLASS(Abstract)
 class FARMERONTHERUN_API ACheckStart : public ABaseCheckPoint
 {
 	GENERATED_BODY()

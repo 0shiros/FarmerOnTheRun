@@ -2,10 +2,8 @@
 
 
 #include "Timer.h"
-
 #include "CheckGoal.h"
 #include "CheckStart.h"
-#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -59,6 +57,7 @@ void ATimer::StartTimer()
 	{
 		CheckStart->OnStartReached.Unbind();
 	}
+	
 }
 
 void ATimer::StopTimer()
