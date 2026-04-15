@@ -128,7 +128,17 @@ void APlayerVehicle::BeginPlay()
 	
 	if (CheckGoal)
 	{
-		CheckGoal->OnGoalReached.BindUObject(this, &APlayerVehicle::DetachFromComponent);
+		CheckGoal->OnGoalReached.AddUObject(this, &APlayerVehicle::DetachFromComponent);
+	}
+}
+
+void APlayerVehicle::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (CheckGoal)
+	{
+		CheckGoal->OnGoalReached.RemoveAll(this);
 	}
 }
 
@@ -136,6 +146,7 @@ void APlayerVehicle::DetachFromComponent()
 {
 	SpringArmComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 	EngineSoundEffect->Stop();
+	
 	if (TObjectPtr<ULocalPlayer> LocalPlayer = Cast<AGamePlayerController>(GetController())->GetLocalPlayer())
 	{		
 		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())

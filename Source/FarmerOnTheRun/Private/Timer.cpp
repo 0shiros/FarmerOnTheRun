@@ -24,7 +24,7 @@ void ATimer::BeginPlay()
 	if (CheckStart && CheckGoal)
 	{
 		CheckStart->OnStartReached.BindUObject(this, &ATimer::StartTimer);
-		CheckGoal->OnGoalReached.BindUObject(this, &ATimer::StopTimer);
+		CheckGoal->OnGoalReached.AddUObject(this, &ATimer::StopTimer);
 	}
 }
 
@@ -32,9 +32,10 @@ void ATimer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	
-	if (CheckStart)
+	if (CheckStart && CheckGoal)
 	{
 		CheckStart->OnStartReached.Unbind();
+		CheckGoal->OnGoalReached.RemoveAll(this);
 	}
 }
 
@@ -56,11 +57,11 @@ void ATimer::StartTimer()
 	if (CheckStart)
 	{
 		CheckStart->OnStartReached.Unbind();
-	}
-	
+	}	
 }
 
 void ATimer::StopTimer()
 {
 	bIsTimerRunning = false;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Final Time: %.2f seconds"), CurrentTime));
 }

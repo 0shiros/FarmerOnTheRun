@@ -6,7 +6,7 @@
 #include "BaseCheckPoint.h"
 #include "CheckGoal.generated.h"
 
-DECLARE_DELEGATE(FOnGoalReached);
+DECLARE_MULTICAST_DELEGATE(FOnGoalReach);
 
 UCLASS(Abstract)
 class FARMERONTHERUN_API ACheckGoal : public ABaseCheckPoint
@@ -17,7 +17,7 @@ public:
 	// Sets default values for this actor's properties
 	ACheckGoal();
 	
-	FOnGoalReached OnGoalReached;
+	FOnGoalReach OnGoalReached;
 
 protected:
 	
