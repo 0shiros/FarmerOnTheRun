@@ -7,32 +7,6 @@
 #include "PlayerVehicle.h"
 #include "VehicleMovement.h"
 
-void AGamePlayerController::Start()
-{
-	if (!CharacterIMC)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Character Input Mapping Context Not Set"));
-		return;
-	}
-	
-	// Set the input mode to Game Only to ensure the player can control the character
-	FInputModeGameOnly InputMode;
-	SetInputMode(InputMode);
-	
-	// Add the input mapping context to the local player subsystem
-	if (TObjectPtr<ULocalPlayer> LocalPlayer = GetLocalPlayer())
-	{
-		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-		{
-			Subsystem->AddMappingContext(CharacterIMC, 0);
-		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Local Player Not Valid"));
-	}
-}
-
 void AGamePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -46,6 +20,34 @@ void AGamePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Completed, this, &AGamePlayerController::BrakeCompleted);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Triggered, this, &AGamePlayerController::SteeringTriggered);
 		EnhancedInputComponent->BindAction(TurnLeftRightAction, ETriggerEvent::Completed, this, &AGamePlayerController::SteeringCompleted);
+	}
+}
+
+void AGamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+		
+	if (!CharacterIMC)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Character Input Mapping Context Not Set"));
+		return;
+	}
+	
+	PlayerVehicule = Cast<APlayerVehicle>(GetPawn());
+	
+	FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
+	
+	if (TObjectPtr<ULocalPlayer> LocalPlayer = GetLocalPlayer())
+	{		
+		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->AddMappingContext(CharacterIMC, 0);
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Local Player Not Valid"));
 	}
 }
 

@@ -3,7 +3,6 @@
 
 #include "GMGame.h"
 #include "GamePlayerController.h"
-#include "SpawnPoint.h"
 #include "Kismet/GameplayStatics.h"
 
 AGMGame::AGMGame()
@@ -12,50 +11,3 @@ AGMGame::AGMGame()
 	DefaultPawnClass = nullptr;
 }
 
-void AGMGame::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	UWorld* World = GetWorld();
-	
-	TObjectPtr<ASpawnPoint> PlayerSpawnPoint = Cast<ASpawnPoint>(UGameplayStatics::GetActorOfClass(World, ASpawnPoint::StaticClass()));
-		
-	TObjectPtr<AGamePlayerController> MyPlayerController = World->GetFirstPlayerController<AGamePlayerController>();
-	
-	if (!MyPlayerController)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to get MyPlayerController!"));
-		return;
-	}
-	
-	if (IsValid(World))
-	{
-		if (!PlayerSpawnPoint)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("PlayerSpawnPoint is not set!"));
-			return;
-		}
-		
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		SpawnParams.Owner = MyPlayerController;
-		
-		APlayerVehicle* PlayerVehicule = World->SpawnActor<APlayerVehicle>(PlayerClass, PlayerSpawnPoint->GetTransform(), SpawnParams);
-		
-		if (IsValid(PlayerVehicule))
-		{	
-			MyPlayerController->Possess(PlayerVehicule);
-			MyPlayerController->PlayerVehicule = PlayerVehicule;
-			MyPlayerController->Start();
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("MyCharacter spawned and possessed successfully!"));
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to spawn MyCharacter!"));
-		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("World is not valid!"));
-	}
-}

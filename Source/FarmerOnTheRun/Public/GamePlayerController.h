@@ -35,7 +35,7 @@ private:
 	virtual void SetupInputComponent() override;
 	
 public:
-	void Start();
+	virtual void BeginPlay() override;
 	
 	void AccelerationTriggered(const FInputActionValue& Value);	
 	

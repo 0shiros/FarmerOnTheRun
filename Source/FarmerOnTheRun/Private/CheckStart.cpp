@@ -15,7 +15,10 @@ void ACheckStart::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, clas
 {
 	Super::OnOverlapBegin(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
-	OnStartReached.ExecuteIfBound();
+	if (IsValid(OtherActor))
+	{
+		OnStartReached.ExecuteIfBound();		
+	}	
 }
 
 

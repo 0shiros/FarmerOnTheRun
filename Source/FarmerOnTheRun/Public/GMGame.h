@@ -16,9 +16,4 @@ class FARMERONTHERUN_API AGMGame : public AGameModeBase
 public:
 	AGMGame();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= PlayerVehiculeClass)
-	TSubclassOf<APlayerVehicle> PlayerClass;
-		
-private:
-	virtual void BeginPlay() override;	
 };

@@ -42,7 +42,7 @@ void ATimer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ATimer::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaTime);	
 	
 	if (bIsTimerRunning)
 	{
