@@ -8,7 +8,7 @@
 
 DECLARE_DELEGATE(FOnGoalReached);
 
-UCLASS(Abstract)
+UCLASS()
 class FARMERONTHERUN_API ACheckGoal : public ABaseCheckPoint
 {
 	GENERATED_BODY()
@@ -18,7 +18,7 @@ public:
 	ACheckGoal();
 	
 	FOnGoalReached OnGoalReached;
-	
+
 protected:
 	
 	virtual void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) override;

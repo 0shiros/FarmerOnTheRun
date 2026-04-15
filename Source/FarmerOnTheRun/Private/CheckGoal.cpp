@@ -8,7 +8,7 @@
 ACheckGoal::ACheckGoal()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ACheckGoal::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
@@ -21,5 +21,3 @@ void ACheckGoal::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class
 		OnGoalReached.ExecuteIfBound();
 	}
 }
-
-
