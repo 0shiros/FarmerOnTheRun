@@ -20,7 +20,7 @@ struct FWheelSetup
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)	
-	EWheelPosition WheelPosition;
+	EWheelPosition WheelPosition = EWheelPosition::FrontLeft;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> WheelMesh;

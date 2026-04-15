@@ -4,6 +4,8 @@
 #include "PlayerVehicle.h"
 
 #include "CheckGoal.h"
+#include "EnhancedInputSubsystems.h"
+#include "GamePlayerController.h"
 #include "NiagaraComponent.h"
 #include "SuspensionComponent.h"
 #include "VehicleMovement.h"
@@ -24,15 +26,8 @@ APlayerVehicle::APlayerVehicle()
 
 	BoxCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
 	RootComponent = BoxCollider;
-
-	BoxCollider->SetSimulatePhysics(true);
-	BoxCollider->SetMassOverrideInKg(NAME_None, 1200.f);
-	BoxCollider->BodyInstance.bUseCCD = true;
-	BoxCollider->SetEnableGravity(false);
+	
 	BoxCollider->SetCollisionProfileName(TEXT("Vehicle"));
-	BoxCollider->SetLinearDamping(0.f);
-	BoxCollider->SetAngularDamping(0.f);
-	BoxCollider->SetCenterOfMass(FVector(7.1283f, 0.f, -50.f));
 	BoxCollider->SetBoxExtent(FVector(106.f, 54.f, 32.f));
 	
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
@@ -128,7 +123,7 @@ APlayerVehicle::APlayerVehicle()
 void APlayerVehicle::BeginPlay()
 {
 	Super::BeginPlay();
-	
+		
 	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
 	
 	if (CheckGoal)
@@ -140,6 +135,14 @@ void APlayerVehicle::BeginPlay()
 void APlayerVehicle::DetachFromComponent()
 {
 	SpringArmComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	EngineSoundEffect->Stop();
+	if (TObjectPtr<ULocalPlayer> LocalPlayer = Cast<AGamePlayerController>(GetController())->GetLocalPlayer())
+	{		
+		if (TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->RemoveMappingContext(Cast<AGamePlayerController>(GetController())->CharacterIMC);
+		}
+	}
 }
 
 

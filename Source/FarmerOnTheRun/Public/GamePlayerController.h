@@ -20,9 +20,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	TObjectPtr<class APlayerVehicle> PlayerVehicule;
 	
-protected: 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = IMC)
 	TObjectPtr<class UInputMappingContext> CharacterIMC;
+	
+protected: 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> AccelerationAction;
