@@ -8,7 +8,7 @@
 
 DECLARE_DELEGATE(FOnGoalReached);
 
-UCLASS()
+UCLASS(Blueprintable)
 class FARMERONTHERUN_API ACheckGoal : public ABaseCheckPoint
 {
 	GENERATED_BODY()
