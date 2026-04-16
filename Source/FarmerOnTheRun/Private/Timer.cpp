@@ -4,6 +4,8 @@
 #include "Timer.h"
 #include "CheckGoal.h"
 #include "CheckStart.h"
+#include "GMGame.h"
+#include "MySaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -17,6 +19,8 @@ ATimer::ATimer()
 void ATimer::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	LoadLeaderboardTimes();
 	
 	CheckStart = Cast<ACheckStart>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckStart::StaticClass()));
 	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
@@ -32,10 +36,24 @@ void ATimer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	
-	if (CheckStart && CheckGoal)
+	if (CheckStart)
 	{
 		CheckStart->OnStartReached.Unbind();
+	}
+	
+	if (CheckGoal)
+	{
 		CheckGoal->OnGoalReached.RemoveAll(this);
+	}
+	
+	if (OnLeaderboardUpdate.IsBound())
+	{
+		OnLeaderboardUpdate.Clear();
+	}
+	
+	if (OnTimerUpdated.IsBound())
+	{
+		OnTimerUpdated.Clear();
 	}
 }
 
@@ -61,7 +79,47 @@ void ATimer::StartTimer()
 }
 
 void ATimer::StopTimer()
-{
+{		
 	bIsTimerRunning = false;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Final Time: %.2f seconds"), CurrentTime));
+	UpdateLeaderboard();
+	OnLeaderboardUpdate.Broadcast(LeaderboardTimes, CurrentTime);
+}
+
+void ATimer::UpdateLeaderboard()
+{	
+	LeaderboardTimes.Sort();
+	
+	if (LeaderboardTimes.Num() < 10)
+	{
+		LeaderboardTimes.Add(CurrentTime);
+		LeaderboardTimes.Sort();
+		SaveLeaderboardTimes();
+		return;
+	}
+	
+	if (CurrentTime < LeaderboardTimes.Last())
+	{
+		LeaderboardTimes.Last() = CurrentTime;
+		LeaderboardTimes.Sort();
+		SaveLeaderboardTimes();
+	}
+}
+
+void ATimer::LoadLeaderboardTimes()
+{
+	GameMode = Cast<AGMGame>(UGameplayStatics::GetGameMode(GetWorld()));
+	SaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(GameMode->SaveSlotName, 0));
+	
+	if (!IsValid(SaveGame))
+	{
+		SaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	}
+	
+	LeaderboardTimes = SaveGame->LeaderboardTimes;
+}
+
+void ATimer::SaveLeaderboardTimes()
+{	
+	SaveGame->LeaderboardTimes = LeaderboardTimes;
+	UGameplayStatics::SaveGameToSlot(SaveGame, GameMode->SaveSlotName, 0);			
 }

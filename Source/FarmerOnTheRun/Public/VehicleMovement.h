@@ -51,6 +51,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:

@@ -37,6 +37,16 @@ void AGamePlayerController::BeginPlay()
 	PauseAction->bTriggerWhenPaused = true;
 }
 
+void AGamePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (OnPauseDelegate.IsBound())
+	{
+		OnPauseDelegate.Clear();
+	}
+}
+
 void AGamePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();

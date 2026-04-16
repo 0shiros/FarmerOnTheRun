@@ -28,6 +28,16 @@ void UVehicleMovement::BeginPlay()
 	}
 }
 
+void UVehicleMovement::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (OnSpeedUpdate.IsBound())
+	{
+		OnSpeedUpdate.Clear();
+	}
+}
+
 void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);

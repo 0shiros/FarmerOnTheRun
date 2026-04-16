@@ -7,7 +7,5 @@
 
 AGMGame::AGMGame()
 {
-	PlayerControllerClass = nullptr;
-	DefaultPawnClass = nullptr;
 }
 

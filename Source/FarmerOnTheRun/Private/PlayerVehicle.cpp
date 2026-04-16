@@ -139,7 +139,7 @@ void APlayerVehicle::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (CheckGoal)
 	{
 		CheckGoal->OnGoalReached.RemoveAll(this);
-	}
+	}	
 }
 
 void APlayerVehicle::DetachFromComponent()
