@@ -115,4 +115,5 @@ void ATimer::LoadLeaderboardTimes()
 void ATimer::SaveLeaderboardTimes()
 {	
 	GameInstance->SaveGame->LeaderboardTimes = LeaderboardTimes;
+	UGameplayStatics::SaveGameToSlot(GameInstance->SaveGame, GameInstance->SaveSlotName, 0);
 }
