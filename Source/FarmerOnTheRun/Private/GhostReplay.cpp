@@ -26,24 +26,28 @@ void AGhostReplay::BeginPlay()
 {
 	Super::BeginPlay();	
 	
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	
+	if (IsValid(GameInstance))
+	{
+		Init();
+	}
+}
+
+void AGhostReplay::Init()
+{
 	PlayerVehicle = Cast<APlayerVehicle>(UGameplayStatics::GetActorOfClass(GetWorld(),APlayerVehicle::StaticClass()));
-	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
-	CheckStart = Cast<ACheckStart>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckStart::StaticClass()));
 	Timer = Cast<ATimer>(UGameplayStatics::GetActorOfClass(GetWorld(), ATimer::StaticClass()));
 		
-	if (IsValid(PlayerVehicle))
+	if (IsValid(PlayerVehicle) && IsValid(PlayerVehicle->VehicleMovementComponent))
 	{
 		PlayerVehicle->VehicleMovementComponent->OnTransformUpdate.BindUObject(this, &AGhostReplay::RecordReplay);				
 	}
 	
-	if (IsValid(CheckStart))
+	if (IsValid(Timer))
 	{
-		CheckStart->OnStartReached.AddUObject(this, &AGhostReplay::HasRaceBegun);
-	}
-
-	if (IsValid(CheckGoal))
-	{
-		CheckGoal->OnGoalReached.AddUObject(this, &AGhostReplay::HasRaceEnded);
+		Timer->OnTimerBegin.AddDynamic(this, &AGhostReplay::HasRaceBegun);
+		Timer->OnLeaderSave.AddDynamic(this, &AGhostReplay::HasRaceEnded);
 	}
 }
 
@@ -51,20 +55,16 @@ void AGhostReplay::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	
-	if (IsValid(PlayerVehicle))
+	if (IsValid(PlayerVehicle) && IsValid(PlayerVehicle->VehicleMovementComponent))
 	{
 		PlayerVehicle->VehicleMovementComponent->OnTransformUpdate.Unbind();
 	}
 	
-	if (IsValid(CheckStart))
+	if (IsValid(Timer))
 	{
-		CheckStart->OnStartReached.RemoveAll(this);
+		Timer->OnTimerBegin.RemoveDynamic(this, &AGhostReplay::HasRaceBegun);
+		Timer->OnLeaderSave.RemoveDynamic(this, &AGhostReplay::HasRaceEnded);
 	}
-	
-	if (IsValid(CheckGoal))
-	{
-		CheckGoal->OnGoalReached.RemoveAll(this);
-	}	
 }
 
 // Called every frame
@@ -101,28 +101,16 @@ void AGhostReplay::ReadReplay()
 }
 
 void AGhostReplay::LoadGhostReplay()
-{		
-	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));	
-	
-	if (!IsValid(GameInstance))
-	{
-		return;
-	}
-
-	if (!IsValid(GameInstance->SaveGame))	
-	{
-		return;
-	}
-	
-	if (GameInstance->SaveGame->PlayerTransforms.Num() == 0)
+{
+	if (!IsValid(GameInstance) || !IsValid(GameInstance->GetSaveGame()) || GameInstance->GetSaveGame()->PlayerTransforms.Num() == 0)
 	{
 		return;
 	}
 		
-	 GhostVehicle = GetWorld()->SpawnActor<AGhostVehicle>(
-	 	GhostVehicleClass, 
-	 	GameInstance->SaveGame->PlayerTransforms[0].GetLocation(), 
-	 	GameInstance->SaveGame->PlayerTransforms[0].GetRotation().Rotator());
+	GhostVehicle = GetWorld()->SpawnActor<AGhostVehicle>(
+		GhostVehicleClass, 
+		GameInstance->GetSaveGame()->PlayerTransforms[0].GetLocation(), 
+		GameInstance->GetSaveGame()->PlayerTransforms[0].GetRotation().Rotator());
 	
 	if (!IsValid(GhostVehicle))
 	{
@@ -130,25 +118,34 @@ void AGhostReplay::LoadGhostReplay()
 		return;
 	}
 	
-	GhostTransforms = GameInstance->SaveGame->PlayerTransforms;
+	GhostTransforms = GameInstance->GetSaveGame()->PlayerTransforms;
 
-	CheckStart->OnStartReached.RemoveAll(this);
+	if (IsValid(Timer))
+	{
+		Timer->OnTimerBegin.RemoveAll(this);
+	}
 }
 
 void AGhostReplay::HasRaceBegun()
-{
+{	
 	LoadGhostReplay();
 	bHasBeginRace = true;
 }
 
 void AGhostReplay::HasRaceEnded()
 {
-	bHasBeginRace = false;
+	bHasBeginRace = false;	
 	
-	if (GameInstance->SaveGame->LeaderboardTimes.Num() == 0 || Timer->CurrentTime < GameInstance->SaveGame->LeaderboardTimes[0])
+	if (!IsValid(GameInstance) || !IsValid(GameInstance->GetSaveGame()) || !IsValid(Timer))
 	{
-		GameInstance->SaveGame->PlayerTransforms = RecordedTransforms;
-	    UGameplayStatics::SaveGameToSlot(GameInstance->SaveGame, GameInstance->SaveSlotName, 0);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Invalid GameInstance, SaveGame or Timer. Cannot save replay.") );
+		return;
+	}	
+	
+	if ( GameInstance->GetSaveGame()->LeaderboardTimes.Num() == 0 ||Timer->CurrentTime <= GameInstance->GetSaveGame()->LeaderboardTimes[0])
+	{
+		GameInstance->GetSaveGame()->PlayerTransforms = RecordedTransforms;
+		GameInstance->SaveGameToSlot();
 	}		
 }
 

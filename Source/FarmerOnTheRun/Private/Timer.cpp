@@ -20,14 +20,26 @@ void ATimer::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	LoadLeaderboardTimes();
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	
+	if (IsValid(GameInstance))
+	{
+		Init();
+	}
+}
+
+void ATimer::Init()
+{	
 	CheckStart = Cast<ACheckStart>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckStart::StaticClass()));
 	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
 	
-	if (CheckStart && CheckGoal)
+	if (IsValid(CheckStart))
 	{
 		CheckStart->OnStartReached.AddUObject(this, &ATimer::StartTimer);
+	}
+	
+	if (IsValid(CheckGoal))
+	{
 		CheckGoal->OnGoalReached.AddUObject(this, &ATimer::StopTimer);
 	}
 }
@@ -55,6 +67,11 @@ void ATimer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		OnTimerUpdated.Clear();
 	}
+	
+	if (OnTimerBegin.IsBound())
+	{
+		OnTimerBegin.Clear();
+	}
 }
 
 void ATimer::Tick(float DeltaTime)
@@ -70,7 +87,8 @@ void ATimer::Tick(float DeltaTime)
 
 void ATimer::StartTimer()
 {
-	bIsTimerRunning = true;			
+	bIsTimerRunning = true;		
+	OnTimerBegin.Broadcast();
 	
 	if (CheckStart)
 	{
@@ -106,14 +124,15 @@ void ATimer::UpdateLeaderboard()
 }
 
 void ATimer::LoadLeaderboardTimes()
-{
-	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-		
-	LeaderboardTimes = GameInstance->SaveGame->LeaderboardTimes;
+{		
+	LeaderboardTimes = GameInstance->GetSaveGame()->LeaderboardTimes;	
+	OnTimerSetup.Broadcast();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Leaderboard times loaded"));
 }
 
 void ATimer::SaveLeaderboardTimes()
 {	
-	GameInstance->SaveGame->LeaderboardTimes = LeaderboardTimes;
-	UGameplayStatics::SaveGameToSlot(GameInstance->SaveGame, GameInstance->SaveSlotName, 0);
+	GameInstance->GetSaveGame()->LeaderboardTimes = LeaderboardTimes;
+	GameInstance->SaveGameToSlot();
+	OnLeaderSave.Broadcast();
 }

@@ -25,13 +25,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Ghost")
 	TSubclassOf<AGhostVehicle> GhostVehicleClass;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CheckStart")
-	TObjectPtr<class ACheckStart> CheckStart;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CheckGoal")
-	TObjectPtr<class ACheckGoal> CheckGoal;	
-	
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameMode")
 	TObjectPtr<class UMyGameInstance> GameInstance;
 	
@@ -49,6 +43,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	void Init();
 		
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -63,7 +59,9 @@ public:
 	
 	void LoadGhostReplay();
 	
+	UFUNCTION()
 	void HasRaceBegun();
 	
+	UFUNCTION()
 	void HasRaceEnded();
 };

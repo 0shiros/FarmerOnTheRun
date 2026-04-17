@@ -68,32 +68,62 @@ void AGamePlayerController::SetupInputComponent()
 
 void AGamePlayerController::AccelerationTriggered(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetAcceleration(Value.Get<float>());
 }
 
 void AGamePlayerController::AccelerationCompleted(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetAcceleration(0.f);
 }
 
 
 void AGamePlayerController::BrakeTriggered(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(Value.Get<float>(), true);
 }
 
 void AGamePlayerController::BrakeCompleted(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetBrake(0.f, false);
 }
 
 void AGamePlayerController::SteeringTriggered(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetSteering(Value.Get<float>(), true);	
 }
 
 void AGamePlayerController::SteeringCompleted(const FInputActionValue& Value)
 {
+	if (!IsValid(PlayerVehicule) || !IsValid(PlayerVehicule->VehicleMovementComponent))
+	{
+		return;
+	}
+	
 	PlayerVehicule->VehicleMovementComponent->SetTargetSteering(0,false);
 }
 

@@ -6,8 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "Timer.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTimerSetup);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerUpdated, float, CurrentTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLeaderboardUpdate, const TArray<float>&, LeaderboardTimes, float, CurrentTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTimerBegin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeaderSave);
 
 UCLASS(Abstract)
 class FARMERONTHERUN_API ATimer : public AActor
@@ -33,11 +36,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Timer")
 	FOnTimerUpdated OnTimerUpdated;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Timer")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leader")
 	TArray<float> LeaderboardTimes;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Timer")
 	FOnLeaderboardUpdate OnLeaderboardUpdate;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Timer")
+	FOnTimerBegin OnTimerBegin;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Leader")
+	FOnLeaderSave OnLeaderSave;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Leader")
+	FOnTimerSetup OnTimerSetup;
 			
 private :	
 	bool bIsTimerRunning = false;
@@ -45,6 +57,8 @@ private :
 protected:
 	
 	virtual void BeginPlay() override;
+	
+	void Init();
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
@@ -56,6 +70,7 @@ protected:
 	
 	void UpdateLeaderboard();
 	
+	UFUNCTION(BlueprintCallable, Category = "Timer")
 	void LoadLeaderboardTimes();
 	
 	void SaveLeaderboardTimes();
