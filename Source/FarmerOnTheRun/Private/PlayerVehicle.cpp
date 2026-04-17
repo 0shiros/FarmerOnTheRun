@@ -126,7 +126,7 @@ void APlayerVehicle::BeginPlay()
 		
 	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
 	
-	if (CheckGoal)
+	if (IsValid(CheckGoal))
 	{
 		CheckGoal->OnGoalReached.AddUObject(this, &APlayerVehicle::DetachFromComponent);
 	}
@@ -136,7 +136,7 @@ void APlayerVehicle::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	
-	if (CheckGoal)
+	if (IsValid(CheckGoal))
 	{
 		CheckGoal->OnGoalReached.RemoveAll(this);
 	}	

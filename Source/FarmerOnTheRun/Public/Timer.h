@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Timer.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTimerSetup);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerUpdated, float, CurrentTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLeaderboardUpdate, const TArray<float>&, LeaderboardTimes, float, CurrentTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTimerBegin);
@@ -46,6 +47,9 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Leader")
 	FOnLeaderSave OnLeaderSave;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Leader")
+	FOnTimerSetup OnTimerSetup;
 			
 private :	
 	bool bIsTimerRunning = false;
@@ -66,6 +70,7 @@ protected:
 	
 	void UpdateLeaderboard();
 	
+	UFUNCTION(BlueprintCallable, Category = "Timer")
 	void LoadLeaderboardTimes();
 	
 	void SaveLeaderboardTimes();

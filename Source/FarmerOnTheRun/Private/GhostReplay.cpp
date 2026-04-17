@@ -127,11 +127,7 @@ void AGhostReplay::LoadGhostReplay()
 }
 
 void AGhostReplay::HasRaceBegun()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Save Game Loaded: %s"), *GameInstance->GetSaveGame()->GetName()) );
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Leaderboard Times Count: %d"), GameInstance->GetSaveGame()->LeaderboardTimes.Num()) );
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Transforms Count: %d"), GameInstance->GetSaveGame()->PlayerTransforms.Num()) );
-	
+{	
 	LoadGhostReplay();
 	bHasBeginRace = true;
 }
@@ -148,11 +144,8 @@ void AGhostReplay::HasRaceEnded()
 	
 	if ( GameInstance->GetSaveGame()->LeaderboardTimes.Num() == 0 ||Timer->CurrentTime <= GameInstance->GetSaveGame()->LeaderboardTimes[0])
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Recorded Transforms Count: %d"), RecordedTransforms.Num()) );
 		GameInstance->GetSaveGame()->PlayerTransforms = RecordedTransforms;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Saved Player Transforms Count: %d"), GameInstance->GetSaveGame()->PlayerTransforms.Num()) );
 		GameInstance->SaveGameToSlot();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Saved Player Transforms Count After Save: %d"), GameInstance->GetSaveGame()->PlayerTransforms.Num()) );
 	}		
 }
 
