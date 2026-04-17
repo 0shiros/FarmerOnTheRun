@@ -1,0 +1,64 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "SuspensionComponent.h"
+#include "CollisionQueryParams.h"
+#include "Components/BoxComponent.h"
+#include "VehicleData.h"
+
+// Sets default values for this component's properties
+USuspensionComponent::USuspensionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USuspensionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	SuspensionQueryParams = FCollisionQueryParams(TEXT("SuspensionTrace"), false, GetOwner());
+}
+
+void USuspensionComponent::PerformSuspensionTrace(const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
+{
+	if (!IsValid(VehicleData))
+	{
+		return;
+	}
+	
+	FVector Start = WheelLocation;
+	FVector End = Start - WheelUpVector * VehicleData->RestDist;
+	
+	GetWorld()->LineTraceSingleByChannel(SuspensionHit, Start, End, ECC_Visibility, SuspensionQueryParams);
+	
+	bIsGrounded = SuspensionHit.bBlockingHit;
+	
+	DrawDebugLine(GetWorld(), Start, End, SuspensionHit.bBlockingHit ? FColor::Green : FColor::Red, false, 0.1f);
+}
+
+FVector USuspensionComponent::CalculateSuspensionForce(UBoxComponent* BoxComponent, const UVehicleData* VehicleData, const FVector& WheelLocation, const FVector& WheelUpVector)
+{			
+	PerformSuspensionTrace(VehicleData, WheelLocation,  WheelUpVector);
+	
+	if (!IsValid(BoxComponent) || !IsValid(VehicleData) || !bIsGrounded)
+	{
+		return FVector::ZeroVector;
+	}	
+	
+	FVector WheelVelocity = BoxComponent->GetPhysicsLinearVelocityAtPoint(WheelLocation);
+	float OffSet = VehicleData->RestDist - SuspensionHit.Distance;
+	float Velocity = FVector::DotProduct(SuspensionHit.ImpactNormal.GetSafeNormal(), WheelVelocity);
+	
+	float Force = OffSet * VehicleData->SpringStrength - Velocity * VehicleData->SpringDamping;
+	Force = FMath::Clamp(Force, -VehicleData->MaxSuspensionForce, VehicleData->MaxSuspensionForce);
+	
+	FVector SuspensionForce = SuspensionHit.ImpactNormal.GetSafeNormal() * Force;
+		
+	return SuspensionForce;	
+}
+
+
+	
+
+
+
