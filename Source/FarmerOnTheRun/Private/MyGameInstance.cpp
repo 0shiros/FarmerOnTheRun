@@ -9,10 +9,26 @@ void UMyGameInstance::Init()
 {
 	Super::Init();
 	
-	SaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0));
+	SaveGame = LoadOrCreateSaveGame();	
+}
+
+UMySaveGame* UMyGameInstance::LoadOrCreateSaveGame()
+{
+	UMySaveGame* LoadedSaveGame = nullptr;
 	
-	if (!IsValid(SaveGame))
+	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0))
 	{
-		SaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
-	}		
+		LoadedSaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0));
+	}
+	else
+	{
+		LoadedSaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	}
+	
+	return LoadedSaveGame;
+}
+
+void UMyGameInstance::SaveGameToSlot()
+{
+	UGameplayStatics::SaveGameToSlot(SaveGame, SaveSlotName, 0);
 }

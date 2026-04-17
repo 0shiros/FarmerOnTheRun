@@ -20,6 +20,16 @@ void ATimer::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	
+	if (IsValid(GameInstance))
+	{
+		Init();
+	}
+}
+
+void ATimer::Init()
+{
 	LoadLeaderboardTimes();
 	
 	CheckStart = Cast<ACheckStart>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckStart::StaticClass()));
@@ -70,7 +80,8 @@ void ATimer::Tick(float DeltaTime)
 
 void ATimer::StartTimer()
 {
-	bIsTimerRunning = true;			
+	bIsTimerRunning = true;		
+	OnTimerBegin.Broadcast();
 	
 	if (CheckStart)
 	{
@@ -109,11 +120,12 @@ void ATimer::LoadLeaderboardTimes()
 {
 	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 		
-	LeaderboardTimes = GameInstance->SaveGame->LeaderboardTimes;
+	LeaderboardTimes = GameInstance->GetSaveGame()->LeaderboardTimes;
 }
 
 void ATimer::SaveLeaderboardTimes()
 {	
-	GameInstance->SaveGame->LeaderboardTimes = LeaderboardTimes;
-	UGameplayStatics::SaveGameToSlot(GameInstance->SaveGame, GameInstance->SaveSlotName, 0);
+	GameInstance->GetSaveGame()->LeaderboardTimes = LeaderboardTimes;
+	GameInstance->SaveGameToSlot();
+	OnLeaderSave.Broadcast();
 }

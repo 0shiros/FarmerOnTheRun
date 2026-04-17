@@ -6,20 +6,26 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
-
 UCLASS()
 class FARMERONTHERUN_API UMyGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
-public:
-	
 	UPROPERTY(VisibleAnywhere, Category = "SaveSlot")
 	FString SaveSlotName = "PlayerSave";
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	UPROPERTY(VisibleAnywhere, Category = "SaveGame")
 	TObjectPtr<class UMySaveGame> SaveGame;
 	
 protected:
 	virtual void Init() override;
+
+	UMySaveGame* LoadOrCreateSaveGame();	
+	
+public :
+	
+	void SaveGameToSlot();
+	
+	UFUNCTION(BlueprintCallable, Category = "SaveGame")
+	UMySaveGame* GetSaveGame() const { return SaveGame; }
 };
