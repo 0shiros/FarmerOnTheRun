@@ -6,7 +6,7 @@
 #include "BaseCheckPoint.h"
 #include "CheckStart.generated.h"
 
-DECLARE_DELEGATE(FOnStartReached);
+DECLARE_MULTICAST_DELEGATE(FOnStartReached);
 
 UCLASS(Abstract)
 class FARMERONTHERUN_API ACheckStart : public ABaseCheckPoint

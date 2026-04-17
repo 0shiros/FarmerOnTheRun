@@ -19,10 +19,7 @@ public:
 	ATimer();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameMode")
-	TObjectPtr<class AGMGame> GameMode;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
-	TObjectPtr<class UMySaveGame> SaveGame;
+	TObjectPtr<class UMyGameInstance> GameInstance;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CheckStart")
 	TObjectPtr<class ACheckStart> CheckStart;	
@@ -41,8 +38,7 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Timer")
 	FOnLeaderboardUpdate OnLeaderboardUpdate;
-	
-		
+			
 private :	
 	bool bIsTimerRunning = false;
 	

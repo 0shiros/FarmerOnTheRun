@@ -14,9 +14,5 @@ class FARMERONTHERUN_API AGMGame : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
-	AGMGame();
-	
-	UPROPERTY(VisibleAnywhere, Category = "SaveSlot")
-	FString SaveSlotName = "PlayerSave";
-	
+	AGMGame();	
 };

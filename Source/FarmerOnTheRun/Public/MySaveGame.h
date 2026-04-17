@@ -16,6 +16,9 @@ class FARMERONTHERUN_API UMySaveGame : public USaveGame
 	
 public:		
 	
-	UPROPERTY(VisibleAnywhere, Category = "Timer")
+	UPROPERTY(SaveGame)
 	TArray<float> LeaderboardTimes;
+	
+	UPROPERTY(SaveGame)
+	TArray<FTransform> PlayerTransforms;
 };

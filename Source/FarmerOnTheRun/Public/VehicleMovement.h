@@ -11,6 +11,7 @@ class UVehicleData;
 class USuspensionComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpeedUpdate, float, CurrentSpeed);
+DECLARE_DELEGATE_OneParam(FOnTransformUpdate, const FTransform&);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FARMERONTHERUN_API UVehicleMovement : public UActorComponent
@@ -24,13 +25,24 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VehicleOwner")
 	TObjectPtr<class APlayerVehicle> VehicleOwner;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CheckStart")	
+	TObjectPtr<class ACheckStart> CheckStart;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CheckGoal")	
+	TObjectPtr<class ACheckGoal> CheckGoal;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VehicleOwner")
 	bool bIsBraking;
-		
+	
+	FOnTransformUpdate OnTransformUpdate;	
+	
+	bool bBeginSendingInput = false;
+	
 private : 
 	
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable, Category = "Speed")
 	FOnSpeedUpdate OnSpeedUpdate;
+	
 	
 	// Input variables
 	float TargetAcceleration;
@@ -56,6 +68,9 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
+	void SetBeginSendingInput();
+	
+	void SetEndSendingInput();
 	
 	void SetVariablesToFrame(float DeltaTime);
 	

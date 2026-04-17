@@ -2,10 +2,9 @@
 
 
 #include "GMGame.h"
-#include "GamePlayerController.h"
-#include "Kismet/GameplayStatics.h"
 
 AGMGame::AGMGame()
 {
+	
 }
 

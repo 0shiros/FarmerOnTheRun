@@ -3,6 +3,8 @@
 
 #include "CheckStart.h"
 
+#include "PlayerVehicle.h"
+
 // Sets default values
 ACheckStart::ACheckStart()
 {
@@ -14,9 +16,9 @@ void ACheckStart::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, clas
                                  class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	
-	if (IsValid(OtherActor))
+	if (Cast<APlayerVehicle>(OtherActor))
 	{
-		OnStartReached.ExecuteIfBound();		
+		OnStartReached.Broadcast();	
 	}	
 }
 

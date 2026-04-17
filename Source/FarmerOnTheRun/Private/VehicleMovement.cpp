@@ -2,6 +2,8 @@
 
 #include "VehicleMovement.h"
 
+#include "CheckGoal.h"
+#include "CheckStart.h"
 #include "NiagaraComponent.h"
 #include "PlayerVehicle.h"
 #include "SuspensionComponent.h"
@@ -10,6 +12,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UVehicleMovement::UVehicleMovement()
 {
@@ -21,10 +24,22 @@ void UVehicleMovement::BeginPlay()
 	Super::BeginPlay();
 
 	VehicleOwner = Cast<APlayerVehicle>(GetOwner());
+	CheckStart = Cast<ACheckStart>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckStart::StaticClass()));
+	CheckGoal = Cast<ACheckGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), ACheckGoal::StaticClass()));
 
 	if (!IsValid(VehicleOwner))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,TEXT("VehicleMovementComponent is not attached to a valid APlayerVehicle!"));
+	}
+	
+	if (IsValid(CheckStart))
+	{
+		CheckStart->OnStartReached.AddUObject(this, &UVehicleMovement::SetBeginSendingInput);
+	}
+	
+	if (IsValid(CheckGoal))
+	{
+		CheckGoal->OnGoalReached.AddUObject(this, &UVehicleMovement::SetEndSendingInput);
 	}
 }
 
@@ -36,6 +51,16 @@ void UVehicleMovement::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		OnSpeedUpdate.Clear();
 	}
+	
+	if (OnTransformUpdate.IsBound())
+	{
+		OnTransformUpdate.Unbind();
+	}
+	
+	if (IsValid(CheckStart))
+	{
+		CheckStart->OnStartReached.RemoveAll(this);
+	}
 }
 
 void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorComponentTickFunction* ThisTickFunction)
@@ -45,6 +70,11 @@ void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorC
 	if (!IsValid(VehicleOwner) || !IsValid(VehicleOwner->VehicleData) || !IsValid(VehicleOwner->BoxCollider))
 	{
 		return;
+	}
+	
+	if (bBeginSendingInput)
+	{
+		OnTransformUpdate.ExecuteIfBound(VehicleOwner->GetActorTransform());		
 	}
 	
 	SetVariablesToFrame(DeltaTime);
@@ -58,6 +88,17 @@ void UVehicleMovement::TickComponent(float DeltaTime,ELevelTick TickType,FActorC
 	ApplyBrake();
 	ApplyAcceleration();
 	SoundMotorPitch();
+}
+
+void UVehicleMovement::SetBeginSendingInput()
+{
+	bBeginSendingInput = true;
+}
+
+void UVehicleMovement::SetEndSendingInput()
+{
+	bBeginSendingInput = false;
+	OnTransformUpdate.Unbind();
 }
 
 #pragma region CalculateVariables

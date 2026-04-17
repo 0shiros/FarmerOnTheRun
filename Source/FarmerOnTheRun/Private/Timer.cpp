@@ -4,7 +4,7 @@
 #include "Timer.h"
 #include "CheckGoal.h"
 #include "CheckStart.h"
-#include "GMGame.h"
+#include "MyGameInstance.h"
 #include "MySaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -27,7 +27,7 @@ void ATimer::BeginPlay()
 	
 	if (CheckStart && CheckGoal)
 	{
-		CheckStart->OnStartReached.BindUObject(this, &ATimer::StartTimer);
+		CheckStart->OnStartReached.AddUObject(this, &ATimer::StartTimer);
 		CheckGoal->OnGoalReached.AddUObject(this, &ATimer::StopTimer);
 	}
 }
@@ -38,7 +38,7 @@ void ATimer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 	if (CheckStart)
 	{
-		CheckStart->OnStartReached.Unbind();
+		CheckStart->OnStartReached.RemoveAll(this);
 	}
 	
 	if (CheckGoal)
@@ -70,11 +70,11 @@ void ATimer::Tick(float DeltaTime)
 
 void ATimer::StartTimer()
 {
-	bIsTimerRunning = true;	
+	bIsTimerRunning = true;			
 	
 	if (CheckStart)
 	{
-		CheckStart->OnStartReached.Unbind();
+		CheckStart->OnStartReached.RemoveAll(this);
 	}	
 }
 
@@ -82,7 +82,7 @@ void ATimer::StopTimer()
 {		
 	bIsTimerRunning = false;
 	UpdateLeaderboard();
-	OnLeaderboardUpdate.Broadcast(LeaderboardTimes, CurrentTime);
+	OnLeaderboardUpdate.Broadcast(LeaderboardTimes, CurrentTime);	
 }
 
 void ATimer::UpdateLeaderboard()
@@ -107,19 +107,12 @@ void ATimer::UpdateLeaderboard()
 
 void ATimer::LoadLeaderboardTimes()
 {
-	GameMode = Cast<AGMGame>(UGameplayStatics::GetGameMode(GetWorld()));
-	SaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(GameMode->SaveSlotName, 0));
-	
-	if (!IsValid(SaveGame))
-	{
-		SaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
-	}
-	
-	LeaderboardTimes = SaveGame->LeaderboardTimes;
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		
+	LeaderboardTimes = GameInstance->SaveGame->LeaderboardTimes;
 }
 
 void ATimer::SaveLeaderboardTimes()
 {	
-	SaveGame->LeaderboardTimes = LeaderboardTimes;
-	UGameplayStatics::SaveGameToSlot(SaveGame, GameMode->SaveSlotName, 0);			
+	GameInstance->SaveGame->LeaderboardTimes = LeaderboardTimes;
 }
